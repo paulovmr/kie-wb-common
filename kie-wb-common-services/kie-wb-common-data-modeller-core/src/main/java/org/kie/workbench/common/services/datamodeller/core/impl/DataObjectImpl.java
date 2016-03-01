@@ -19,11 +19,13 @@ package org.kie.workbench.common.services.datamodeller.core.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.DataObject;
 import org.kie.workbench.common.services.datamodeller.core.ObjectProperty;
 import org.kie.workbench.common.services.datamodeller.core.Visibility;
 import org.uberfire.backend.vfs.Path;
 
+@Portable
 public class DataObjectImpl extends JavaClassImpl implements DataObject {
 
     private List<ObjectProperty> properties = new ArrayList<ObjectProperty>();

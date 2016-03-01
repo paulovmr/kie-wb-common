@@ -19,10 +19,12 @@ package org.kie.workbench.common.services.datamodeller.core.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.JavaClass;
 import org.kie.workbench.common.services.datamodeller.core.JavaTypeKind;
 import org.kie.workbench.common.services.datamodeller.core.Visibility;
 
+@Portable
 public class JavaClassImpl extends AbstractJavaType implements JavaClass {
 
     private String superClassName;

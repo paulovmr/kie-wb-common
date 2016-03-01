@@ -16,6 +16,7 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.ObjectSource;
 import org.kie.workbench.common.services.datamodeller.core.Visibility;
 import org.kie.workbench.common.services.datamodeller.util.NamingUtils;
@@ -24,6 +25,7 @@ import org.kie.workbench.common.services.datamodeller.core.DataObject;
 
 import java.util.*;
 
+@Portable
 public class DataModelImpl implements DataModel {
 
     Map<String, DataObject> dataObjects = new HashMap<String, DataObject>();

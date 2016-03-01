@@ -16,8 +16,10 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.JavaTypeInfo;
 
+@Portable
 public class JavaTypeInfoImpl implements JavaTypeInfo {
 
     String _name;

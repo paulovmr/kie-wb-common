@@ -16,8 +16,10 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationDefinition;
 
+@Portable
 public class AnnotationImpl extends AbstractAnnotation {
 
     public AnnotationImpl() {

@@ -16,9 +16,11 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.*;
 
 
+@Portable
 public class ModelFactoryImpl implements ModelFactory {
     
     public static ModelFactory getInstance() {

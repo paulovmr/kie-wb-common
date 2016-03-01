@@ -16,6 +16,7 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.PropertyType;
 import org.kie.workbench.common.services.datamodeller.core.PropertyTypeFactory;
 import org.kie.workbench.common.services.datamodeller.util.NamingUtils;
@@ -27,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+@Portable
 public class PropertyTypeFactoryImpl implements PropertyTypeFactory {
 
     private static List<PropertyType> baseTypes = new ArrayList<PropertyType>();
@@ -88,7 +90,8 @@ public class PropertyTypeFactoryImpl implements PropertyTypeFactory {
         return type != null && type.isPrimitive();
     }
 
-    private static class HoldInstance {
+    @Portable
+    public static class HoldInstance {
         private static final PropertyTypeFactoryImpl INSTANCE = new PropertyTypeFactoryImpl();
     }
 }

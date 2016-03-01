@@ -16,10 +16,12 @@
 
 package org.kie.workbench.common.services.datamodeller.core.impl;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.ObjectProperty;
 import org.kie.workbench.common.services.datamodeller.core.Visibility;
 import org.kie.workbench.common.services.datamodeller.util.NamingUtils;
 
+@Portable
 public class ObjectPropertyImpl extends AbstractHasAnnotations implements ObjectProperty {
 
     private String name;

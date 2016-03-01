@@ -17,9 +17,11 @@ package org.kie.workbench.common.services.datamodeller.core.impl;
 
 import java.util.Arrays;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationDefinition;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationValuePairDefinition;
 
+@Portable
 public class AnnotationValuePairDefinitionImpl implements AnnotationValuePairDefinition {
 
     private String name;

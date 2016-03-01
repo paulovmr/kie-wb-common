@@ -19,11 +19,13 @@ package org.kie.workbench.common.services.datamodeller.core.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jboss.errai.common.client.api.annotations.Portable;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationDefinition;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationRetention;
 import org.kie.workbench.common.services.datamodeller.core.AnnotationValuePairDefinition;
 import org.kie.workbench.common.services.datamodeller.core.ElementType;
 
+@Portable
 public class AbstractAnnotationDefinition implements AnnotationDefinition {
     
     protected String className;
@@ -38,7 +40,7 @@ public class AbstractAnnotationDefinition implements AnnotationDefinition {
 
     protected AnnotationRetention retention = AnnotationRetention.CLASS;
 
-    protected AbstractAnnotationDefinition() {
+    public AbstractAnnotationDefinition() {
         //errai marshalling
     }
 
