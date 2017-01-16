@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Red Hat, Inc. and/or its affiliates.
+ * Copyright 2017 Red Hat, Inc. and/or its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.kie.workbench.common.screens.library.client.screens;
+package org.kie.workbench.common.screens.library.client.perspective;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Event;
@@ -22,10 +22,14 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.guvnor.common.services.project.model.Project;
+import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
+import org.uberfire.backend.vfs.ObservablePath;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.client.annotations.Perspective;
 import org.uberfire.client.annotations.WorkbenchPerspective;
@@ -33,6 +37,8 @@ import org.uberfire.client.mvp.PlaceManager;
 import org.uberfire.client.workbench.panels.impl.SimpleWorkbenchPanelPresenter;
 import org.uberfire.ext.editor.commons.client.event.ConcurrentDeleteAcceptedEvent;
 import org.uberfire.ext.editor.commons.client.event.ConcurrentRenameAcceptedEvent;
+import org.uberfire.mvp.PlaceRequest;
+import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.mvp.impl.PathPlaceRequest;
 import org.uberfire.workbench.model.PerspectiveDefinition;
 import org.uberfire.workbench.model.impl.PerspectiveDefinitionImpl;
@@ -49,9 +55,9 @@ public class AssetPerspective {
 
     private Event<AssetDetailEvent> assetDetailEvent;
 
-    Path path;
+    ObservablePath path;
 
-    Project project;
+    ProjectInfo projectInfo;
 
     @Inject
     public AssetPerspective( final PlaceManager placeManager,
@@ -65,41 +71,49 @@ public class AssetPerspective {
     }
 
     public void assetSelected( @Observes final AssetDetailEvent assetDetails ) {
-        final PathPlaceRequest pathPlaceRequest = generatePathPlaceRequest( assetDetails.getPath() );
-        path = pathPlaceRequest.getPath();
-        project = assetDetails.getProject();
+        projectInfo = assetDetails.getProjectInfo();
+        final PlaceRequest placeRequest = generatePlaceRequest( assetDetails.getPath() );
 
-        pathPlaceRequest.getPath().onRename( () -> updateBreadcrumbs( project, path ) );
-        pathPlaceRequest.getPath().onDelete( () -> goBackToProject( project ) );
+        if ( assetDetails.getPath() == null ) {
+            path = null;
+        } else {
+            path = ( (PathPlaceRequest) placeRequest ).getPath();
+            path.onRename( () -> updateBreadcrumbs( projectInfo, path ) );
+            path.onDelete( this::goBackToProject );
+        }
 
-        placeManager.goTo( pathPlaceRequest );
-        updateBreadcrumbs( project, pathPlaceRequest.getPath() );
+        placeManager.goTo( placeRequest );
+        updateBreadcrumbs( projectInfo, path );
     }
 
     public void assetDeletedAccepted( @Observes final ConcurrentDeleteAcceptedEvent concurrentDeleteAcceptedEvent ) {
         if ( path != null && path.equals( concurrentDeleteAcceptedEvent.getPath() ) ) {
-            goBackToProject( project );
+            goBackToProject();
         }
     }
 
     public void assetRenamedAccepted( @Observes final ConcurrentRenameAcceptedEvent concurrentRenameAcceptedEvent ) {
         if ( path != null && path.equals( concurrentRenameAcceptedEvent.getPath() ) ) {
-            updateBreadcrumbs( project, path );
+            updateBreadcrumbs( projectInfo, path );
         }
     }
 
-    private void updateBreadcrumbs( final Project project,
+    private void updateBreadcrumbs( final ProjectInfo projectInfo,
                                     final Path path ) {
-        libraryBreadcrumbs.setupLibraryBreadCrumbsForAsset( project,
+        libraryBreadcrumbs.setupLibraryBreadCrumbsForAsset( projectInfo,
                                                             path );
     }
 
-    private void goBackToProject( final Project project ) {
+    private void goBackToProject() {
         placeManager.goTo( LibraryPlaces.PROJECT_SCREEN );
-        projectDetailEvent.fire( new ProjectDetailEvent( project ) );
+        projectDetailEvent.fire( new ProjectDetailEvent( projectInfo ) );
     }
 
-    PathPlaceRequest generatePathPlaceRequest( final Path path ) {
+    PlaceRequest generatePlaceRequest( final Path path ) {
+        if ( path == null ) {
+            return new DefaultPlaceRequest( "projectScreen" );
+        }
+
         return new PathPlaceRequest( path );
     }
 

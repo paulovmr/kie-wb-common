@@ -23,7 +23,10 @@ import java.util.Map;
 import javax.enterprise.event.Event;
 
 import com.google.gwt.user.client.ui.IsWidget;
+import org.guvnor.common.services.project.context.ProjectContextChangeEvent;
 import org.guvnor.common.services.project.model.Project;
+import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.junit.Before;
@@ -34,6 +37,7 @@ import org.kie.workbench.common.screens.explorer.model.FolderItem;
 import org.kie.workbench.common.screens.explorer.model.FolderItemType;
 import org.kie.workbench.common.screens.library.api.LibraryContextSwitchEvent;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
@@ -93,6 +97,9 @@ public class ProjectScreenTest {
     @Mock
     private Event<AssetDetailEvent> assetDetailEventEvent;
 
+    @Mock
+    private Event<ProjectContextChangeEvent> projectContextChangeEventEvent;
+
     @Captor
     private ArgumentCaptor<LibraryContextSwitchEvent> libraryContextSwitchEventArgumentCaptor;
 
@@ -113,7 +120,8 @@ public class ProjectScreenTest {
                                                 ts,
                                                 libraryServiceCaller,
                                                 assetClassifier,
-                                                assetDetailEventEvent ) );
+                                                assetDetailEventEvent,
+                                                projectContextChangeEventEvent ) );
 
         mockClientResourceType();
         mockAssets();
@@ -121,14 +129,12 @@ public class ProjectScreenTest {
 
     @Test
     public void onStartupTest() {
-        final Project project = mock( Project.class );
-        doReturn( "projectName" ).when( project ).getProjectName();
-        doReturn( "projectPath" ).when( project ).getIdentifier();
+        final ProjectInfo projectInfo = createProjectInfo();
 
-        projectScreen.onStartup( new ProjectDetailEvent( project ) );
+        projectScreen.onStartup( new ProjectDetailEvent( projectInfo ) );
 
-        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForProject( project );
-        verify( libraryService ).getProjectAssets( project );
+        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForProject( projectInfo );
+        verify( libraryService ).getProjectAssets( projectInfo.getProject() );
         verify( view ).clearAssets();
         verify( view, times( 2 ) ).addAsset( anyString(),
                                              anyString(),
@@ -139,16 +145,13 @@ public class ProjectScreenTest {
 
     @Test
     public void selectCommandTest() {
-        final Project project = mock( Project.class );
-        doReturn( "projectName" ).when( project ).getProjectName();
-        doReturn( "projectPath" ).when( project ).getIdentifier();
-
+        final ProjectInfo projectInfo = createProjectInfo();
         final Path assetPath = mock( Path.class );
-        projectScreen.onStartup( new ProjectDetailEvent( project ) );
+        projectScreen.onStartup( new ProjectDetailEvent( projectInfo ) );
         projectScreen.selectCommand( "file2.txt", assetPath ).execute();
 
         verify( placeManager ).goTo( LibraryPlaces.ASSET_PERSPECTIVE );
-        verify( assetDetailEventEvent ).fire( eq( new AssetDetailEvent( project, assetPath ) ) );
+        verify( assetDetailEventEvent ).fire( eq( new AssetDetailEvent( projectInfo, assetPath ) ) );
     }
 
     @Test
@@ -182,5 +185,19 @@ public class ProjectScreenTest {
         doReturn( ".txt" ).when( clientResourceType ).getSuffix();
         doReturn( "Text file" ).when( clientResourceType ).getDescription();
         doReturn( clientResourceType ).when( assetClassifier ).findResourceType( any( FolderItem.class ) );
+    }
+
+    private ProjectInfo createProjectInfo() {
+        final Project project = mock( Project.class );
+        doReturn( "projectName" ).when( project ).getProjectName();
+        doReturn( "projectPath" ).when( project ).getIdentifier();
+
+        final OrganizationalUnit organizationalUnit = mock( OrganizationalUnit.class );
+        final Repository repository = mock( Repository.class );
+        final String branch = "master";
+        return new ProjectInfo( organizationalUnit,
+                                repository,
+                                branch,
+                                project );
     }
 }

@@ -36,24 +36,32 @@ public class LibraryView implements LibraryScreen.View, IsElement {
 
     private LibraryScreen presenter;
 
-    @DataField
     @Inject
+    private ProjectsDetailScreen projectsDetailScreen;
+
+    @Inject
+    @DataField("main-container")
+    Div mainContainer;
+
+    @Inject
+    @DataField("details-container")
+    Div detailsContainer;
+
+    @Inject
+    @DataField("project-list")
     Div projectList;
 
-    @DataField
     @Inject
+    @DataField("new-project-button")
     Button newProjectButton;
 
-    @DataField
     @Inject
+    @DataField("import-example")
     Button importExample;
 
-    @DataField
     @Inject
+    @DataField("filter-text")
     Input filterText;
-
-    @Inject
-    Document document;
 
     @Inject
     ManagedInstance<ProjectItemWidget> itemWidgetsInstances;
@@ -61,10 +69,14 @@ public class LibraryView implements LibraryScreen.View, IsElement {
     @Inject
     TranslationService ts;
 
+    private ProjectItemWidget selectedProjectItemWidget;
+
     @Override
     public void init( LibraryScreen presenter ) {
         this.presenter = presenter;
+        this.selectedProjectItemWidget = null;
         filterText.setAttribute( "placeholder", ts.getTranslation( LibraryConstants.LibraryView_Filter ) );
+        detailsContainer.appendChild( projectsDetailScreen.getView().getElement() );
     }
 
     @Override
@@ -73,10 +85,46 @@ public class LibraryView implements LibraryScreen.View, IsElement {
     }
 
     @Override
-    public void addProject( String project, Command details, Command select ) {
+    public void addProject( final String project,
+                            final Command details,
+                            final Command select ) {
         ProjectItemWidget projectItemWidget = itemWidgetsInstances.get();
-        projectItemWidget.init( project, details, select );
+        projectItemWidget.init( project, detailsCommand( details, projectItemWidget ), select );
         projectList.appendChild( projectItemWidget.getElement() );
+    }
+
+    private Command detailsCommand( final Command details,
+                                    final ProjectItemWidget projectItemWidget ) {
+        return () -> {
+            details.execute();
+
+            if ( projectItemWidget.equals( selectedProjectItemWidget ) ) {
+                mainContainer.getClassList().add( "col-md-12" );
+                mainContainer.getClassList().add( "col-lg-12" );
+                mainContainer.getClassList().remove( "col-md-8" );
+                mainContainer.getClassList().remove( "col-lg-9" );
+                detailsContainer.getClassList().add( "hidden" );
+                detailsContainer.getClassList().remove( "col-md-4" );
+                detailsContainer.getClassList().remove( "col-lg-3" );
+                projectItemWidget.unselect();
+                this.selectedProjectItemWidget = null;
+            } else {
+                if ( selectedProjectItemWidget == null ) {
+                    mainContainer.getClassList().remove( "col-md-12" );
+                    mainContainer.getClassList().remove( "col-lg-12" );
+                    mainContainer.getClassList().add( "col-md-8" );
+                    mainContainer.getClassList().add( "col-lg-9" );
+                    detailsContainer.getClassList().remove( "hidden" );
+                    detailsContainer.getClassList().add( "col-md-4" );
+                    detailsContainer.getClassList().add( "col-lg-3" );
+                } else {
+                    selectedProjectItemWidget.unselect();
+                }
+
+                projectItemWidget.select();
+                this.selectedProjectItemWidget = projectItemWidget;
+            }
+        };
     }
 
     @Override
@@ -85,26 +133,20 @@ public class LibraryView implements LibraryScreen.View, IsElement {
     }
 
     @SinkNative( Event.ONCLICK )
-    @EventHandler( "newProjectButton" )
+    @EventHandler( "new-project-button" )
     public void newProject( Event e ) {
         presenter.newProject();
     }
 
     @SinkNative( Event.ONCLICK )
-    @EventHandler( "importExample" )
+    @EventHandler( "import-example" )
     public void importExample( Event e ) {
         presenter.importExample();
     }
 
     @SinkNative( Event.ONKEYUP )
-    @EventHandler( "filterText" )
+    @EventHandler( "filter-text" )
     public void filterTextChange( Event e ) {
         presenter.updateProjectsBy( filterText.getValue() );
-    }
-
-    private Option createOption( String ou ) {
-        Option option = ( Option ) document.createElement( "option" );
-        option.setText( ou );
-        return option;
     }
 }

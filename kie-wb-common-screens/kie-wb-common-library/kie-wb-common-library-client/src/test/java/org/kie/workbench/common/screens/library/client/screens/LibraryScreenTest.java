@@ -21,8 +21,10 @@ import java.util.List;
 import java.util.Set;
 import javax.enterprise.event.Event;
 
+import org.guvnor.common.services.project.context.ProjectContextChangeEvent;
 import org.guvnor.common.services.project.model.Project;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.junit.Before;
@@ -33,7 +35,6 @@ import org.kie.workbench.common.screens.library.api.LibraryInfo;
 import org.kie.workbench.common.screens.library.api.LibraryService;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
-import org.kie.workbench.common.screens.library.client.util.LibraryDocks;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.kie.workbench.common.screens.library.client.widgets.LibraryBreadCrumbToolbarPresenter;
 import org.mockito.Mock;
@@ -67,13 +68,13 @@ public class LibraryScreenTest {
     private OrganizationalUnit defaultOU2;
 
     @Mock
+    private Repository defaultRepositoryOU2;
+
+    @Mock
     private LibraryBreadcrumbs libraryBreadcrumbs;
 
     @Mock
     private LibraryBreadCrumbToolbarPresenter breadCrumbToolbarPresenter;
-
-    @Mock
-    private LibraryDocks libraryDocks;
 
     @Mock
     private SessionInfo sessionInfo;
@@ -89,6 +90,9 @@ public class LibraryScreenTest {
 
     @Mock
     private Event<ProjectDetailEvent> projectDetailEventEvent;
+
+    @Mock
+    private Event<ProjectContextChangeEvent> projectContextChangeEventEvent;
 
     private LibraryScreen libraryScreen;
 
@@ -107,7 +111,6 @@ public class LibraryScreenTest {
 
         libraryScreen = spy( new LibraryScreen( view,
                                                 breadCrumbToolbarPresenter,
-                                                libraryDocks,
                                                 placeManager,
                                                 libraryBreadcrumbs,
                                                 libraryContextSwitchEventEvent,
@@ -115,6 +118,7 @@ public class LibraryScreenTest {
                                                 authorizationManager,
                                                 ts,
                                                 projectDetailEventEvent,
+                                                projectContextChangeEventEvent,
                                                 libraryServiceCaller ) );
     }
 
@@ -126,7 +130,6 @@ public class LibraryScreenTest {
         verify( view, times( getProjects().size() ) ).addProject( any(), any(), any() );
         verify( libraryBreadcrumbs ).setupToolBar( breadCrumbToolbarPresenter );
         verify( breadCrumbToolbarPresenter ).init( any(), any() );
-        verify( libraryDocks ).refresh();
     }
 
     @Test
@@ -159,10 +162,16 @@ public class LibraryScreenTest {
 
         OrganizationalUnit defaultOrganizationUnit = defaultOU1;
         OrganizationalUnit selectedOrganizationUnit = defaultOU2;
+        Repository selectedRepository = defaultRepositoryOU2;
+        String selectedBranch = "master";
 
         ouAlias = "alias";
 
-        LibraryInfo libraryInfo = new LibraryInfo( defaultOrganizationUnit, selectedOrganizationUnit, getProjects(),
+        LibraryInfo libraryInfo = new LibraryInfo( defaultOrganizationUnit,
+                                                   selectedOrganizationUnit,
+                                                   selectedRepository,
+                                                   selectedBranch,
+                                                   getProjects(),
                                                    getOus(), ouAlias );
         return libraryInfo;
     }

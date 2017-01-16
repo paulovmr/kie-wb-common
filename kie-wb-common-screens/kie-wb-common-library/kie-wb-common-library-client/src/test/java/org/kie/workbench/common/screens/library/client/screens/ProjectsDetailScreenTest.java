@@ -19,6 +19,7 @@ import org.guvnor.common.services.project.model.POM;
 import org.guvnor.common.services.project.model.Project;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -38,10 +39,10 @@ public class ProjectsDetailScreenTest {
 
         projectsDetail = new ProjectsDetailScreen( view, null );
 
-        Project project = mock( Project.class );
+        ProjectInfo project = mock( ProjectInfo.class );
         POM pom = mock( POM.class );
         when( pom.getDescription() ).thenReturn( "desc" );
-        when( project.getPom() ).thenReturn( pom );
+        when( project.getProject().getPom() ).thenReturn( pom );
         ProjectDetailEvent event = new ProjectDetailEvent( project );
 
         projectsDetail.update( event );

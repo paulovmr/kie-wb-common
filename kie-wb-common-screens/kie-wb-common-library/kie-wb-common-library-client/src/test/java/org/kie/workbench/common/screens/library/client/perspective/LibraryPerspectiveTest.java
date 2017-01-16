@@ -20,15 +20,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kie.workbench.common.screens.library.client.monitor.LibraryMonitor;
-import org.kie.workbench.common.screens.library.client.util.LibraryDocks;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.uberfire.client.mvp.PlaceManager;
-import org.uberfire.client.workbench.docks.UberfireDocks;
 import org.uberfire.mvp.impl.ConditionalPlaceRequest;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith( GwtMockitoTestRunner.class )
@@ -38,25 +35,13 @@ public class LibraryPerspectiveTest {
     private PlaceManager placeManager;
 
     @Mock
-    private UberfireDocks uberfireDocks;
-
-    @Mock
-    private LibraryDocks libraryDocks;
-
-    @Mock
     private LibraryMonitor libraryMonitor;
 
     private LibraryPerspective perspective;
 
     @Before
     public void setup() {
-        perspective = new LibraryPerspective( placeManager, uberfireDocks, libraryDocks, libraryMonitor );
-    }
-
-    @Test
-    public void testSetupDocks() throws Exception {
-        perspective.setupDocks();
-        verify( libraryDocks ).start();
+        perspective = new LibraryPerspective( placeManager, libraryMonitor );
     }
 
     @Test

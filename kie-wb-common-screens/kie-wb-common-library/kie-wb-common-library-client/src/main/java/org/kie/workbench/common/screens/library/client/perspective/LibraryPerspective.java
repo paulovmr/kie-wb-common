@@ -18,14 +18,11 @@ package org.kie.workbench.common.screens.library.client.perspective;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
-import org.jboss.errai.ioc.client.api.AfterInitialization;
 import org.kie.workbench.common.screens.library.client.monitor.LibraryMonitor;
-import org.kie.workbench.common.screens.library.client.util.LibraryDocks;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.uberfire.client.annotations.Perspective;
 import org.uberfire.client.annotations.WorkbenchPerspective;
 import org.uberfire.client.mvp.PlaceManager;
-import org.uberfire.client.workbench.docks.UberfireDocks;
 import org.uberfire.client.workbench.panels.impl.StaticWorkbenchPanelPresenter;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.ConditionalPlaceRequest;
@@ -40,10 +37,6 @@ public class LibraryPerspective {
 
     private PlaceManager placeManager;
 
-    private UberfireDocks uberfireDocks;
-
-    private LibraryDocks libraryDocks;
-
     private LibraryMonitor libraryMonitor;
 
     public LibraryPerspective() {
@@ -51,18 +44,9 @@ public class LibraryPerspective {
 
     @Inject
     public LibraryPerspective( final PlaceManager placeManager,
-                               final UberfireDocks uberfireDocks,
-                               final LibraryDocks libraryDocks,
                                final LibraryMonitor libraryMonitor ) {
         this.placeManager = placeManager;
-        this.uberfireDocks = uberfireDocks;
-        this.libraryDocks = libraryDocks;
         this.libraryMonitor = libraryMonitor;
-    }
-
-    @AfterInitialization
-    public void setupDocks() {
-        libraryDocks.start();
     }
 
     @Perspective

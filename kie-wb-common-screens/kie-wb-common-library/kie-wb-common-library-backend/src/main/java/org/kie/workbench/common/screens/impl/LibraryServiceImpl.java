@@ -132,6 +132,8 @@ public class LibraryServiceImpl implements LibraryService {
         LibraryInfo libraryInfo = new LibraryInfo(
                 defaultOU,
                 defaultOU,
+                getDefaultRepository( defaultOU ),
+                "master",
                 getProjects( defaultOU ),
                 getOrganizationalUnits(),
                 getPreferences().getOuAlias() );
@@ -148,6 +150,8 @@ public class LibraryServiceImpl implements LibraryService {
         LibraryInfo libraryInfo = new LibraryInfo(
                 defaultOU,
                 selectedOU,
+                getDefaultRepository( selectedOU ),
+                "master",
                 getProjects( selectedOU ),
                 organizationalUnits,
                 getPreferences().getOuAlias() );
@@ -191,6 +195,13 @@ public class LibraryServiceImpl implements LibraryService {
         checkNotNull( "project", project );
         final Package defaultPackage = projectService.resolveDefaultPackage( project );
         return explorerServiceHelper.getAssetsRecursively( defaultPackage, new ActiveOptions( Option.BUSINESS_CONTENT ) );
+    }
+
+    @Override
+    public Boolean hasAssets( final Project project ) {
+        checkNotNull( "project", project );
+        final Package defaultPackage = projectService.resolveDefaultPackage( project );
+        return explorerServiceHelper.hasAssets( defaultPackage );
     }
 
     POM createPOM( String projectName,

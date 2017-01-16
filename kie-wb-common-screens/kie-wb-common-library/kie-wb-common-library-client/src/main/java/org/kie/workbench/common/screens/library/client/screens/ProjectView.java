@@ -20,12 +20,10 @@ import javax.inject.Inject;
 
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.ui.IsWidget;
-import org.jboss.errai.common.client.dom.Button;
 import org.jboss.errai.common.client.dom.DOMUtil;
 import org.jboss.errai.common.client.dom.Div;
-import org.jboss.errai.common.client.dom.Document;
+import org.jboss.errai.common.client.dom.Form;
 import org.jboss.errai.common.client.dom.Input;
-import org.jboss.errai.common.client.dom.Option;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
 import org.jboss.errai.ui.client.local.api.IsElement;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
@@ -36,7 +34,7 @@ import org.jboss.errai.ui.shared.api.annotations.Templated;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
 import org.kie.workbench.common.screens.library.client.util.InfoPopup;
 import org.kie.workbench.common.screens.library.client.widgets.AssetItemWidget;
-import org.kie.workbench.common.screens.library.client.widgets.ProjectItemWidget;
+import org.kie.workbench.common.screens.library.client.widgets.ProjectActionsWidget;
 import org.uberfire.mvp.Command;
 
 @Templated
@@ -44,20 +42,31 @@ public class ProjectView implements ProjectScreen.View, IsElement {
 
     private ProjectScreen presenter;
 
-    @DataField
     @Inject
+    private ProjectsDetailScreen projectsDetailScreen;
+
+    @Inject
+    private ProjectActionsWidget projectActionsWidget;
+
+    @Inject
+    @DataField
+    Form toolbar;
+
+    @Inject
+    @DataField("details-container")
+    Div detailsContainer;
+
+    @Inject
+    @DataField
     Div assetList;
 
-    @DataField
     @Inject
-    Button newAssetButton;
-
     @DataField
-    @Inject
     Input filterText;
 
     @Inject
-    Document document;
+    @DataField("project-name")
+    Div projectNameContainer;
 
     @Inject
     ManagedInstance<AssetItemWidget> itemWidgetsInstances;
@@ -69,6 +78,13 @@ public class ProjectView implements ProjectScreen.View, IsElement {
     public void init( ProjectScreen presenter ) {
         this.presenter = presenter;
         filterText.setAttribute( "placeholder", ts.getTranslation( LibraryConstants.LibraryView_Filter ) );
+        detailsContainer.appendChild( projectsDetailScreen.getView().getElement() );
+        toolbar.appendChild( projectActionsWidget.getView().getElement() );
+    }
+
+    @Override
+    public void setProjectName( final String projectName ) {
+        projectNameContainer.setTextContent( projectName );
     }
 
     @Override
@@ -88,21 +104,9 @@ public class ProjectView implements ProjectScreen.View, IsElement {
         InfoPopup.generate( ts.getTranslation( LibraryConstants.Error_NoAccessRights ) );
     }
 
-    @SinkNative( Event.ONCLICK )
-    @EventHandler( "newAssetButton" )
-    public void newAsset( Event e ) {
-        presenter.newAsset();
-    }
-
     @SinkNative( Event.ONKEYUP )
     @EventHandler( "filterText" )
     public void filterTextChange( Event e ) {
         presenter.updateAssetsBy( filterText.getValue() );
-    }
-
-    private Option createOption( String ou ) {
-        Option option = ( Option ) document.createElement( "option" );
-        option.setText( ou );
-        return option;
     }
 }

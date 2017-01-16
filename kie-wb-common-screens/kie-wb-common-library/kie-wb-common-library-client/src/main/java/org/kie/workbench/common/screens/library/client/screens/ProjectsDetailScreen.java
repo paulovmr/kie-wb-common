@@ -20,6 +20,7 @@ import org.guvnor.common.services.project.model.POM;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
+import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
 import org.uberfire.client.annotations.WorkbenchScreen;
@@ -28,7 +29,7 @@ import org.uberfire.client.mvp.UberElement;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
-@WorkbenchScreen( identifier = "ProjectsDetailScreen" )
+@WorkbenchScreen( identifier = LibraryPlaces.PROJECT_DETAIL_SCREEN )
 public class ProjectsDetailScreen {
 
     public interface View extends UberElement<ProjectsDetailScreen> {
@@ -49,7 +50,7 @@ public class ProjectsDetailScreen {
     }
 
     public void update( @Observes ProjectDetailEvent event ) {
-        pom = event.getProjectSelected().getPom();
+        pom = event.getProjectInfo().getProject().getPom();
         if ( pom != null && pom.getDescription() != null ) {
             view.update( pom.getDescription() );
         }

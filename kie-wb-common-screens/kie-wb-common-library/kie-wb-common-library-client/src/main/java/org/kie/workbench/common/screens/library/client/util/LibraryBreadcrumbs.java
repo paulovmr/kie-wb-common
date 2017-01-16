@@ -22,6 +22,7 @@ import javax.inject.Inject;
 import org.guvnor.common.services.project.model.Project;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.workbench.common.screens.explorer.client.utils.Utils;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
@@ -66,14 +67,6 @@ public class LibraryBreadcrumbs {
         breadcrumbs.addToolbar( LibraryPlaces.LIBRARY_PERSPECTIVE, breadCrumbToolbarPresenter.getView().getElement() );
     }
 
-    public void setupAuthoringBreadCrumbsForProject( final String projectName ) {
-        breadcrumbs.clearBreadCrumbsAndToolBars( LibraryPlaces.AUTHORING );
-        breadcrumbs.addBreadCrumb( LibraryPlaces.AUTHORING, ts.getTranslation( LibraryConstants.All_Projects ),
-                                   new DefaultPlaceRequest( LibraryPlaces.LIBRARY_SCREEN ) );
-        breadcrumbs.addBreadCrumb( LibraryPlaces.AUTHORING, projectName,
-                                   new DefaultPlaceRequest( LibraryPlaces.AUTHORING ) );
-    }
-
     public void setupAuthoringBreadcrumbsForExample() {
         breadcrumbs.clearBreadCrumbsAndToolBars( LibraryPlaces.AUTHORING );
         breadcrumbs.addBreadCrumb( LibraryPlaces.AUTHORING, ts.getTranslation( LibraryConstants.All_Projects ),
@@ -86,37 +79,42 @@ public class LibraryBreadcrumbs {
                                    new DefaultPlaceRequest( LibraryPlaces.LIBRARY_SCREEN ) );
     }
 
-    public void setupLibraryBreadCrumbsForProject( final Project project ) {
+    public void setupLibraryBreadCrumbsForProject( final ProjectInfo projectInfo ) {
         breadcrumbs.clearBreadCrumbsAndToolBars( LibraryPlaces.LIBRARY_PERSPECTIVE );
         breadcrumbs.addBreadCrumb( LibraryPlaces.LIBRARY_PERSPECTIVE,
                                    ts.getTranslation( LibraryConstants.All_Projects ),
                                    new DefaultPlaceRequest( LibraryPlaces.LIBRARY_SCREEN ) );
         breadcrumbs.addBreadCrumb( LibraryPlaces.LIBRARY_PERSPECTIVE,
-                                   project.getProjectName(),
+                                   projectInfo.getProject().getProjectName(),
                                    new DefaultPlaceRequest( LibraryPlaces.PROJECT_SCREEN ),
                                    () -> {
-                                       projectDetailEvent.fire( new ProjectDetailEvent( project ) );
+                                       projectDetailEvent.fire( new ProjectDetailEvent( projectInfo ) );
                                    } );
     }
 
-    public void setupLibraryBreadCrumbsForAsset( final Project project,
+    public void setupLibraryBreadCrumbsForAsset( final ProjectInfo projectInfo,
                                                  final Path path ) {
-        final String assetName = resourceUtils.getBaseFileName( path );
+        String assetName;
+        if ( path != null ) {
+            assetName = resourceUtils.getBaseFileName( path );
+        } else {
+            assetName = ts.format( LibraryConstants.LibraryBreadcrumbs_Settings );
+        }
 
         breadcrumbs.clearBreadCrumbsAndToolBars( LibraryPlaces.ASSET_PERSPECTIVE );
         breadcrumbs.addBreadCrumb( LibraryPlaces.ASSET_PERSPECTIVE, ts.getTranslation( LibraryConstants.All_Projects ),
                                    new DefaultPlaceRequest( LibraryPlaces.LIBRARY_SCREEN ) );
         breadcrumbs.addBreadCrumb( LibraryPlaces.ASSET_PERSPECTIVE,
-                                   project.getProjectName(),
+                                   projectInfo.getProject().getProjectName(),
                                    new DefaultPlaceRequest( LibraryPlaces.PROJECT_SCREEN ),
                                    () -> {
-                                       projectDetailEvent.fire( new ProjectDetailEvent( project ) );
+                                       projectDetailEvent.fire( new ProjectDetailEvent( projectInfo ) );
                                    } );
         breadcrumbs.addBreadCrumb( LibraryPlaces.ASSET_PERSPECTIVE,
                                    assetName,
                                    new DefaultPlaceRequest( LibraryPlaces.ASSET_PERSPECTIVE ),
                                    () -> {
-                                       assetDetailEvent.fire( new AssetDetailEvent( project, path ) );
+                                       assetDetailEvent.fire( new AssetDetailEvent( projectInfo, path ) );
                                    } );
     }
 }

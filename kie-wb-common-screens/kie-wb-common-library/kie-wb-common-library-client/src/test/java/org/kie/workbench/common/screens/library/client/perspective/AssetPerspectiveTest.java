@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.kie.workbench.common.screens.library.client.screens;
+package org.kie.workbench.common.screens.library.client.perspective;
 
 import javax.enterprise.event.Event;
 
 import org.guvnor.common.services.project.model.Project;
+import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
+import org.kie.workbench.common.screens.library.client.perspective.AssetPerspective;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.mockito.Mock;
@@ -64,35 +68,35 @@ public class AssetPerspectiveTest {
 
     @Test
     public void assetSelectedTest() {
-        final Project project = createProject();
+        final ProjectInfo projectInfo = createProjectInfo();
         final ObservablePath assetPath = createPath();
         final PathPlaceRequest pathPlaceRequest = createPathPlaceRequest( assetPath );
-        doReturn( pathPlaceRequest ).when( assetPerspective ).generatePathPlaceRequest( assetPath );
+        doReturn( pathPlaceRequest ).when( assetPerspective ).generatePlaceRequest( assetPath );
 
-        assetPerspective.assetSelected( new AssetDetailEvent( project, assetPath ) );
+        assetPerspective.assetSelected( new AssetDetailEvent( projectInfo, assetPath ) );
 
         verify( assetPath ).onDelete( any( Command.class ) );
         verify( assetPath ).onRename( any( Command.class ) );
         verify( placeManager ).goTo( pathPlaceRequest );
-        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForAsset( project,
+        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForAsset( projectInfo,
                                                                       assetPath );
     }
 
     @Test
     public void selectedAssetDeleteAcceptedTest() {
-        assetPerspective.project = createProject();
+        assetPerspective.projectInfo = createProjectInfo();
         ObservablePath deletedAssetPath = createPath();
         assetPerspective.path = deletedAssetPath;
 
         assetPerspective.assetDeletedAccepted( new ConcurrentDeleteAcceptedEvent( deletedAssetPath ) );
 
         verify( placeManager ).goTo( LibraryPlaces.PROJECT_SCREEN );
-        verify( projectDetailEvent ).fire( new ProjectDetailEvent( assetPerspective.project ) );
+        verify( projectDetailEvent ).fire( new ProjectDetailEvent( assetPerspective.projectInfo ) );
     }
 
     @Test
     public void anotherAssetDeleteAcceptedTest() {
-        assetPerspective.project = createProject();
+        assetPerspective.projectInfo = createProjectInfo();
         ObservablePath deletedAssetPath = createPath();
         ObservablePath anotherAssetPath = createPath();
         assetPerspective.path = anotherAssetPath;
@@ -105,26 +109,26 @@ public class AssetPerspectiveTest {
 
     @Test
     public void selectedAssetRenameAcceptedTest() {
-        assetPerspective.project = createProject();
+        assetPerspective.projectInfo = createProjectInfo();
         ObservablePath renamedAssetPath = createPath();
         assetPerspective.path = renamedAssetPath;
 
         assetPerspective.assetRenamedAccepted( new ConcurrentRenameAcceptedEvent( renamedAssetPath ) );
 
-        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForAsset( assetPerspective.project,
+        verify( libraryBreadcrumbs ).setupLibraryBreadCrumbsForAsset( assetPerspective.projectInfo,
                                                                       assetPerspective.path );
     }
 
     @Test
     public void anotherAssetRenameAcceptedTest() {
-        assetPerspective.project = createProject();
+        assetPerspective.projectInfo = createProjectInfo();
         ObservablePath renamedAssetPath = createPath();
         ObservablePath anotherAssetPath = createPath();
         assetPerspective.path = anotherAssetPath;
 
         assetPerspective.assetRenamedAccepted( new ConcurrentRenameAcceptedEvent( renamedAssetPath ) );
 
-        verify( libraryBreadcrumbs, never() ).setupLibraryBreadCrumbsForAsset( assetPerspective.project,
+        verify( libraryBreadcrumbs, never() ).setupLibraryBreadCrumbsForAsset( assetPerspective.projectInfo,
                                                                                assetPerspective.path );
     }
 
@@ -138,10 +142,17 @@ public class AssetPerspectiveTest {
         return mock( ObservablePath.class );
     }
 
-    private Project createProject() {
+    private ProjectInfo createProjectInfo() {
         final Project project = mock( Project.class );
         doReturn( "projectName" ).when( project ).getProjectName();
         doReturn( "projectPath" ).when( project ).getIdentifier();
-        return project;
+
+        final OrganizationalUnit organizationalUnit = mock( OrganizationalUnit.class );
+        final Repository repository = mock( Repository.class );
+        final String branch = "master";
+        return new ProjectInfo( organizationalUnit,
+                                repository,
+                                branch,
+                                project );
     }
 }

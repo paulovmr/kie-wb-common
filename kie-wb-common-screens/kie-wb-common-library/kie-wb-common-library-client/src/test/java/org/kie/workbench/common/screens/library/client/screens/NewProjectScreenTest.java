@@ -25,6 +25,7 @@ import javax.enterprise.event.Event;
 
 import org.guvnor.common.services.project.model.Project;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,6 +90,9 @@ public class NewProjectScreenTest {
     @Mock
     private OrganizationalUnit ou2;
 
+    @Mock
+    private Repository repositoryOu2;
+
     CallerMock<LibraryService> libraryServiceCaller;
     private String ouAlias;
 
@@ -146,6 +150,8 @@ public class NewProjectScreenTest {
     private LibraryInfo getDefaultLibraryMock() {
         OrganizationalUnit defaultOrganizationUnit = ou1;
         OrganizationalUnit selectedOrganizationUnit = ou2;
+        Repository selectedRepository = repositoryOu2;
+        String selectedBranch = "master";
 
         Set<Project> projects = new HashSet<>();
         projects.add( mock( Project.class ) );
@@ -154,7 +160,11 @@ public class NewProjectScreenTest {
         Collection<OrganizationalUnit> organizationUnits = Arrays.asList( ou1, ou2 );
         ouAlias = "alias";
 
-        LibraryInfo libraryInfo = new LibraryInfo( defaultOrganizationUnit, selectedOrganizationUnit, projects,
+        LibraryInfo libraryInfo = new LibraryInfo( defaultOrganizationUnit,
+                                                   selectedOrganizationUnit,
+                                                   selectedRepository,
+                                                   selectedBranch,
+                                                   projects,
                                                    organizationUnits, ouAlias );
         return libraryInfo;
     }

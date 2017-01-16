@@ -31,19 +31,17 @@ public class NewProjectView implements NewProjectScreen.View, IsElement {
 
     private NewProjectScreen presenter;
 
-
-    @Named( "h1" )
     @Inject
-    @DataField
-    private Heading back;
-
-    @Inject
-    @DataField
+    @DataField("project-name")
     private Input projectName;
 
     @Inject
-    @DataField
+    @DataField("ou-dropdown")
     Select ouDropdown;
+
+    @Inject
+    @DataField("ou-label")
+    private Label ouLabel;
 
     @Inject
     @DataField
@@ -54,22 +52,11 @@ public class NewProjectView implements NewProjectScreen.View, IsElement {
     private Button create;
 
     @Inject
-    @DataField
-    private Label ouLabel;
-
-    @Inject
     private Document document;
 
     @Override
     public void init( NewProjectScreen presenter ) {
         this.presenter = presenter;
-        back.setOnmouseover( f -> back.getStyle().setProperty( "cursor", "pointer" ) );
-    }
-
-    @SinkNative( Event.ONCLICK )
-    @EventHandler( "back" )
-    public void back( Event e ) {
-        presenter.back();
     }
 
     @SinkNative( Event.ONCLICK )

@@ -46,12 +46,29 @@ public class ProjectItemWidget implements IsElement {
     @DataField
     Div projectListItemText;
 
-    public void init( String projectName, Command details, Command select ) {
-        this.projectName.setTextContent( projectName );
+    private String project;
+
+    public void init( final String project,
+                      final Command details,
+                      final Command select ) {
+        this.project = project;
+        this.projectName.setTextContent( project );
         this.projectName.setOnclick( e -> {
             e.stopImmediatePropagation();
             select.execute();
         } );
         projectListItem.setOnclick( e -> details.execute() );
+    }
+
+    public String getProject() {
+        return project;
+    }
+
+    public void select() {
+        projectListItem.getClassList().add( "selected" );
+    }
+
+    public void unselect() {
+        projectListItem.getClassList().remove( "selected" );
     }
 }

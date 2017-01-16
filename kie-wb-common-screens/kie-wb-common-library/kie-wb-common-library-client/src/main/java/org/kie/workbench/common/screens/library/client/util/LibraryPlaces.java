@@ -24,5 +24,7 @@ public interface LibraryPlaces {
     String LIBRARY_SCREEN = "LibraryScreen";
     String PROJECT_SCREEN = "ProjectScreen";
     String ASSET_PERSPECTIVE = "AssetPerspective";
+    String EMPTY_PROJECT_SCREEN = "EmptyProjectScreen";
+    String PROJECT_DETAIL_SCREEN = "ProjectsDetailScreen";
     String AUTHORING = "AuthoringPerspective";
 }

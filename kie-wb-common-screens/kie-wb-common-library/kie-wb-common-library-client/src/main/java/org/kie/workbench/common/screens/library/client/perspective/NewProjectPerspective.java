@@ -17,6 +17,7 @@ package org.kie.workbench.common.screens.library.client.perspective;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.uberfire.client.annotations.Perspective;
 import org.uberfire.client.annotations.WorkbenchPerspective;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
@@ -25,7 +26,7 @@ import org.uberfire.workbench.model.impl.PartDefinitionImpl;
 import org.uberfire.workbench.model.impl.PerspectiveDefinitionImpl;
 
 @ApplicationScoped
-@WorkbenchPerspective( identifier = "NewProjectPerspective" )
+@WorkbenchPerspective( identifier = LibraryPlaces.NEW_PROJECT_PERSPECTIVE)
 public class NewProjectPerspective {
 
 

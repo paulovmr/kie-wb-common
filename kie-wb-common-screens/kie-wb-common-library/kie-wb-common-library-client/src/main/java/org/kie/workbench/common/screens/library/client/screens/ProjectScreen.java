@@ -23,6 +23,7 @@ import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import com.google.gwt.user.client.ui.IsWidget;
+import org.guvnor.common.services.project.context.ProjectContextChangeEvent;
 import org.guvnor.common.services.project.model.Project;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
@@ -33,12 +34,14 @@ import org.kie.workbench.common.screens.explorer.model.FolderItem;
 import org.kie.workbench.common.screens.explorer.model.FolderItemType;
 import org.kie.workbench.common.screens.library.api.LibraryContextSwitchEvent;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.perspective.LibraryPerspective;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
+import org.kie.workbench.common.widgets.client.handlers.NewResourceSuccessEvent;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.client.annotations.WorkbenchPartTitle;
 import org.uberfire.client.annotations.WorkbenchPartView;
@@ -58,6 +61,8 @@ import org.uberfire.workbench.model.ActivityResourceType;
 public class ProjectScreen {
 
     public interface View extends UberElement<ProjectScreen> {
+
+        void setProjectName( String projectName );
 
         void clearAssets();
 
@@ -90,7 +95,9 @@ public class ProjectScreen {
 
     private Event<AssetDetailEvent> assetDetailEvent;
 
-    private Project project;
+    private Event<ProjectContextChangeEvent> projectContextChangeEvent;
+
+    private ProjectInfo projectInfo;
 
     private List<FolderItem> assets;
 
@@ -104,7 +111,8 @@ public class ProjectScreen {
                           final TranslationService ts,
                           final Caller<LibraryService> libraryService,
                           final Classifier assetClassifier,
-                          final Event<AssetDetailEvent> assetDetailEvent ) {
+                          final Event<AssetDetailEvent> assetDetailEvent,
+                          final Event<ProjectContextChangeEvent> projectContextChangeEvent ) {
         this.view = view;
         this.placeManager = placeManager;
         this.libraryBreadcrumbs = libraryBreadcrumbs;
@@ -115,11 +123,17 @@ public class ProjectScreen {
         this.libraryService = libraryService;
         this.assetClassifier = assetClassifier;
         this.assetDetailEvent = assetDetailEvent;
+        this.projectContextChangeEvent = projectContextChangeEvent;
     }
 
     public void onStartup( @Observes final ProjectDetailEvent projectDetailEvent ) {
-        this.project = projectDetailEvent.getProjectSelected();
+        this.projectInfo = projectDetailEvent.getProjectInfo();
+        projectContextChangeEvent.fire( new ProjectContextChangeEvent( projectInfo.getOrganizationalUnit(),
+                                                                       projectInfo.getRepository(),
+                                                                       projectInfo.getBranch(),
+                                                                       projectInfo.getProject() ) );
         loadProjectInfo();
+        view.setProjectName( projectInfo.getProject().getProjectName() );
     }
 
     private void loadProjectInfo() {
@@ -129,7 +143,7 @@ public class ProjectScreen {
                 assets = assetsList;
                 loadProject( assets );
             }
-        } ).getProjectAssets( project );
+        } ).getProjectAssets( projectInfo.getProject() );
     }
 
     private void loadProject( List<FolderItem> assets ) {
@@ -138,7 +152,7 @@ public class ProjectScreen {
     }
 
     private void setupToolBar() {
-        libraryBreadcrumbs.setupLibraryBreadCrumbsForProject( project );
+        libraryBreadcrumbs.setupLibraryBreadCrumbsForProject( projectInfo );
     }
 
     private void setupAssets( List<FolderItem> assets ) {
@@ -162,7 +176,7 @@ public class ProjectScreen {
                            final Path assetPath ) {
         return () -> {
             placeManager.goTo( LibraryPlaces.ASSET_PERSPECTIVE );
-            assetDetailEvent.fire( new AssetDetailEvent( project, assetPath ) );
+            assetDetailEvent.fire( new AssetDetailEvent( projectInfo, assetPath ) );
         };
     }
 
@@ -194,11 +208,20 @@ public class ProjectScreen {
         if ( hasAccessToPerspective( LibraryPlaces.AUTHORING ) ) {
             placeManager.goTo( new DefaultPlaceRequest( LibraryPlaces.AUTHORING ) );
             libraryContextSwitchEvent.fire( new LibraryContextSwitchEvent( LibraryContextSwitchEvent.EventType.PROJECT_SELECTED,
-                                                                           project.getRootPath(),
-                                                                           () -> libraryBreadcrumbs.setupLibraryBreadCrumbsForProject( project ) ) );
+                                                                           projectInfo.getProject().getRootPath(),
+                                                                           () -> libraryBreadcrumbs.setupLibraryBreadCrumbsForProject( projectInfo ) ) );
         } else {
             view.noRightsPopup();
         }
+    }
+
+    public void newResourceCreated( @Observes final NewResourceSuccessEvent newResourceSuccessEvent ) {
+        placeManager.goTo( LibraryPlaces.ASSET_PERSPECTIVE );
+        assetDetailEvent.fire( new AssetDetailEvent( projectInfo, newResourceSuccessEvent.getPath() ) );
+    }
+
+    public String getProjectName() {
+        return projectInfo.getProject().getProjectName();
     }
 
     @WorkbenchPartTitle

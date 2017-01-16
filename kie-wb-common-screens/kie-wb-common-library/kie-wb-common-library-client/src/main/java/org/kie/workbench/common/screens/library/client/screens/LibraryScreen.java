@@ -16,6 +16,14 @@
 
 package org.kie.workbench.common.screens.library.client.screens;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.enterprise.event.Event;
+import javax.inject.Inject;
+
+import org.guvnor.common.services.project.context.ProjectContextChangeEvent;
 import org.guvnor.common.services.project.model.Project;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
@@ -23,11 +31,11 @@ import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.workbench.common.screens.library.api.LibraryContextSwitchEvent;
 import org.kie.workbench.common.screens.library.api.LibraryInfo;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
 import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.perspective.LibraryPerspective;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
-import org.kie.workbench.common.screens.library.client.util.LibraryDocks;
 import org.kie.workbench.common.screens.library.client.util.LibraryParameters;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.kie.workbench.common.screens.library.client.widgets.LibraryBreadCrumbToolbarPresenter;
@@ -39,18 +47,12 @@ import org.uberfire.client.mvp.UberElement;
 import org.uberfire.lifecycle.OnStartup;
 import org.uberfire.mvp.Command;
 import org.uberfire.mvp.PlaceRequest;
+import org.uberfire.mvp.impl.ConditionalPlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.rpc.SessionInfo;
 import org.uberfire.security.ResourceRef;
 import org.uberfire.security.authz.AuthorizationManager;
 import org.uberfire.workbench.model.ActivityResourceType;
-
-import javax.enterprise.event.Event;
-import javax.inject.Inject;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @WorkbenchScreen( identifier = LibraryPlaces.LIBRARY_SCREEN,
         owningPerspective = LibraryPerspective.class )
@@ -60,7 +62,9 @@ public class LibraryScreen {
 
         void clearProjects();
 
-        void addProject( String project, Command details, Command select );
+        void addProject( String project,
+                         Command details,
+                         Command select );
 
         void clearFilterText();
     }
@@ -68,8 +72,6 @@ public class LibraryScreen {
     private View view;
 
     private LibraryBreadCrumbToolbarPresenter breadCrumbToolbarPresenter;
-
-    private LibraryDocks libraryDocks;
 
     private PlaceManager placeManager;
 
@@ -85,6 +87,8 @@ public class LibraryScreen {
 
     private Event<ProjectDetailEvent> projectDetailEvent;
 
+    private Event<ProjectContextChangeEvent> projectContextChangeEvent;
+
     Caller<LibraryService> libraryService;
 
     LibraryInfo libraryInfo;
@@ -92,7 +96,6 @@ public class LibraryScreen {
     @Inject
     public LibraryScreen( final View view,
                           final LibraryBreadCrumbToolbarPresenter breadCrumbToolbarPresenter,
-                          final LibraryDocks libraryDocks,
                           final PlaceManager placeManager,
                           final LibraryBreadcrumbs libraryBreadcrumbs,
                           final Event<LibraryContextSwitchEvent> libraryContextSwitchEvent,
@@ -100,10 +103,10 @@ public class LibraryScreen {
                           final AuthorizationManager authorizationManager,
                           final TranslationService ts,
                           final Event<ProjectDetailEvent> projectDetailEvent,
+                          final Event<ProjectContextChangeEvent> projectContextChangeEvent,
                           final Caller<LibraryService> libraryService ) {
         this.view = view;
         this.breadCrumbToolbarPresenter = breadCrumbToolbarPresenter;
-        this.libraryDocks = libraryDocks;
         this.placeManager = placeManager;
         this.libraryBreadcrumbs = libraryBreadcrumbs;
         this.libraryContextSwitchEvent = libraryContextSwitchEvent;
@@ -111,6 +114,7 @@ public class LibraryScreen {
         this.authorizationManager = authorizationManager;
         this.ts = ts;
         this.projectDetailEvent = projectDetailEvent;
+        this.projectContextChangeEvent = projectContextChangeEvent;
         this.libraryService = libraryService;
     }
 
@@ -133,10 +137,8 @@ public class LibraryScreen {
     }
 
     private void loadLibrary( LibraryInfo libraryInfo ) {
-        LibraryScreen.this.libraryInfo = libraryInfo;
-        setupProjects( libraryInfo.getProjects() );
+        updateLibrary( libraryInfo );
         setupOus( libraryInfo );
-        libraryDocks.refresh();
     }
 
     private void setupToolBar() {
@@ -153,23 +155,30 @@ public class LibraryScreen {
         libraryService.call( new RemoteCallback<LibraryInfo>() {
             @Override
             public void callback( LibraryInfo libraryInfo ) {
-                LibraryScreen.this.libraryInfo = libraryInfo;
-                view.clearFilterText();
-                setupProjects( libraryInfo.getProjects() );
+                updateLibrary( libraryInfo );
             }
         } ).getLibraryInfo( ou );
     }
 
-    private void setupProjects( Set<Project> projects ) {
+    private void updateLibrary( final LibraryInfo libraryInfo ) {
+        LibraryScreen.this.libraryInfo = libraryInfo;
+        view.clearFilterText();
+        setupProjects( libraryInfo.getProjects() );
+        projectContextChangeEvent.fire( new ProjectContextChangeEvent( libraryInfo.getSelectedOrganizationUnit(),
+                                                                       libraryInfo.getSelectedRepository(),
+                                                                       libraryInfo.getSelectedBranch() ) );
+    }
+
+    private void setupProjects( final Set<Project> projects ) {
         view.clearProjects();
 
         projects.stream().forEach( p -> view
-                .addProject( p.getProjectName(), detailsCommand( p ),
+                .addProject( p.getProjectName(),
+                             detailsCommand( p ),
                              selectCommand( p ) ) );
     }
 
     public void newProject() {
-        libraryDocks.hide();
         placeManager.goTo( new DefaultPlaceRequest( LibraryPlaces.NEW_PROJECT_SCREEN, newProjectParameters() ) );
     }
 
@@ -181,24 +190,37 @@ public class LibraryScreen {
     }
 
 
-    Command selectCommand( Project project ) {
-        return () -> {
-            placeManager.goTo( LibraryPlaces.PROJECT_SCREEN );
-            projectDetailEvent.fire( new ProjectDetailEvent( project ) );
+    Command selectCommand( final Project project ) {
+        return () -> libraryService.call( new RemoteCallback<Boolean>() {
+            @Override
+            public void callback( final Boolean hasAssets ) {
+                final PlaceRequest projectScreen = new ConditionalPlaceRequest( LibraryPlaces.PROJECT_SCREEN )
+                        .when( p -> hasAssets )
+                        .orElse( new DefaultPlaceRequest( LibraryPlaces.EMPTY_PROJECT_SCREEN ) );
+                placeManager.goTo( projectScreen );
+                final ProjectInfo projectInfo = new ProjectInfo( libraryInfo.getSelectedOrganizationUnit(),
+                                                                 libraryInfo.getSelectedRepository(),
+                                                                 libraryInfo.getSelectedBranch(),
+                                                                 project );
+                projectDetailEvent.fire( new ProjectDetailEvent( projectInfo ) );
+                libraryBreadcrumbs.setupLibraryBreadCrumbsForProject( projectInfo );
+            }
+        } ).hasAssets( project );
+    }
 
-            detailsCommand( project ).execute();
+    Command detailsCommand( final Project project ) {
+        return () -> {
+            final ProjectInfo projectInfo = new ProjectInfo( libraryInfo.getSelectedOrganizationUnit(),
+                                                             libraryInfo.getSelectedRepository(),
+                                                             libraryInfo.getSelectedBranch(),
+                                                             project );
+            projectDetailEvent.fire( new ProjectDetailEvent( projectInfo ) );
         };
     }
 
     boolean hasAccessToPerspective( String perspectiveId ) {
         ResourceRef resourceRef = new ResourceRef( perspectiveId, ActivityResourceType.PERSPECTIVE );
         return authorizationManager.authorize( resourceRef, sessionInfo.getIdentity() );
-    }
-
-    Command detailsCommand( Project selectedProject ) {
-        return () -> {
-            libraryDocks.handle( selectedProject );
-        };
     }
 
     public void selectOrganizationUnit( String ou ) {

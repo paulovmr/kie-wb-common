@@ -17,6 +17,7 @@ package org.kie.workbench.common.screens.library.api;
 
 import org.guvnor.common.services.project.model.Project;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.repositories.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,8 @@ public class LibraryInfo {
 
     private OrganizationalUnit defaultOrganizationUnit;
     private OrganizationalUnit selectedOrganizationUnit;
+    private Repository selectedRepository;
+    private String selectedBranch;
     private Set<Project> projects = new HashSet<>();
     private Collection<OrganizationalUnit> organizationUnits = new ArrayList<>();
     private String ouAlias;
@@ -36,22 +39,20 @@ public class LibraryInfo {
     public LibraryInfo() {
     }
 
-    public LibraryInfo( OrganizationalUnit defaultOrganizationUnit,
-                        OrganizationalUnit selectedOrganizationUnit,
-                        Set<Project> projects,
-                        Collection<OrganizationalUnit> organizationUnits,
-                        String ouAlias) {
-        checkNotNull( "defaultOrganizationUnit", defaultOrganizationUnit );
-        checkNotNull( "selectedOrganizationUnit", selectedOrganizationUnit );
-        checkNotNull( "projects", projects );
-        checkNotNull( "organizationUnits", organizationUnits );
-        checkNotNull( "ouAlias", ouAlias );
-
-        this.defaultOrganizationUnit = defaultOrganizationUnit;
-        this.selectedOrganizationUnit = selectedOrganizationUnit;
-        this.projects = projects;
-        this.organizationUnits = organizationUnits;
-        this.ouAlias = ouAlias;
+    public LibraryInfo( final OrganizationalUnit defaultOrganizationUnit,
+                        final OrganizationalUnit selectedOrganizationUnit,
+                        final Repository selectedRepository,
+                        final String selectedBranch,
+                        final Set<Project> projects,
+                        final Collection<OrganizationalUnit> organizationUnits,
+                        final String ouAlias) {
+        this.defaultOrganizationUnit = checkNotNull( "defaultOrganizationUnit", defaultOrganizationUnit );
+        this.selectedOrganizationUnit = checkNotNull( "selectedOrganizationUnit", selectedOrganizationUnit );
+        this.selectedRepository = checkNotNull( "selectedRepository", selectedRepository );
+        this.selectedBranch = checkNotNull( "selectedBranch", selectedBranch );
+        this.projects = checkNotNull( "projects", projects );
+        this.organizationUnits = checkNotNull( "organizationUnits", organizationUnits );
+        this.ouAlias = checkNotNull( "ouAlias", ouAlias );
     }
 
     public OrganizationalUnit getDefaultOrganizationUnit() {
@@ -80,6 +81,14 @@ public class LibraryInfo {
 
     public OrganizationalUnit getSelectedOrganizationUnit() {
         return selectedOrganizationUnit;
+    }
+
+    public Repository getSelectedRepository() {
+        return selectedRepository;
+    }
+
+    public String getSelectedBranch() {
+        return selectedBranch;
     }
 
     public String getOuAlias() {

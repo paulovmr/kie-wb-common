@@ -59,6 +59,10 @@ public class LibraryConstants {
     @TranslationKey( defaultValue = "" )
     public static final String ProjectDetailScreen = "Project_Detail_Screen";
 
+    @TranslationKey( defaultValue = "" )
+    public static final String EmptyProjectScreen_Title = "EmptyProjectScreen.Title";
 
+    @TranslationKey( defaultValue = "" )
+    public static final String LibraryBreadcrumbs_Settings = "LibraryBreadcrumbs.Settings";
 
 }

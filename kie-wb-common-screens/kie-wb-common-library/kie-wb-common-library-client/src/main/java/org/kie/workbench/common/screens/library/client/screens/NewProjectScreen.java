@@ -30,6 +30,8 @@ import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.workbench.common.screens.library.api.LibraryContextSwitchEvent;
 import org.kie.workbench.common.screens.library.api.LibraryInfo;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.ProjectInfo;
+import org.kie.workbench.common.screens.library.client.events.ProjectDetailEvent;
 import org.kie.workbench.common.screens.library.client.monitor.LibraryMonitor;
 import org.kie.workbench.common.screens.library.client.resources.i18n.LibraryConstants;
 import org.kie.workbench.common.screens.library.client.util.LibraryBreadcrumbs;
@@ -98,7 +100,12 @@ public class NewProjectScreen {
     @Inject
     private LibraryMonitor libraryMonitor;
 
+    @Inject
+    private Event<ProjectDetailEvent> projectDetailEvent;
+
     private DefaultPlaceRequest backPlaceRequest;
+
+    private LibraryInfo libraryInfo;
 
     @OnStartup
     public void onStartup( final PlaceRequest place ) {
@@ -120,6 +127,7 @@ public class NewProjectScreen {
         libraryService.call( new RemoteCallback<LibraryInfo>() {
             @Override
             public void callback( LibraryInfo lib ) {
+                NewProjectScreen.this.libraryInfo = lib;
                 view.setOUAlias( lib.getOuAlias() );
                 clearOrganizationUnits();
                 lib.getOrganizationUnits()
@@ -191,12 +199,15 @@ public class NewProjectScreen {
     }
 
     void goToProject( KieProject project ) {
-        setupBreadCrumbs( project );
         openProject( project );
+        setupBreadCrumbs( project );
     }
 
     private void setupBreadCrumbs( KieProject project ) {
-        breadcrumbs.setupAuthoringBreadCrumbsForProject( project.getProjectName() );
+        breadcrumbs.setupLibraryBreadCrumbsForProject( new ProjectInfo( libraryInfo.getSelectedOrganizationUnit(),
+                                                                        libraryInfo.getSelectedRepository(),
+                                                                        libraryInfo.getSelectedBranch(),
+                                                                        project ) );
     }
 
     private void notifySuccess() {
@@ -205,10 +216,11 @@ public class NewProjectScreen {
     }
 
     void openProject( KieProject project ) {
-        final Map<String, String> params = new HashMap<>();
-        params.put( "projectName", project.getProjectName() );
-        params.put( "projectPath", project.getIdentifier() );
-        placeManager.goTo( new DefaultPlaceRequest( LibraryPlaces.PROJECT_SCREEN, params ) );
+        placeManager.goTo( LibraryPlaces.EMPTY_PROJECT_SCREEN );
+        projectDetailEvent.fire( new ProjectDetailEvent( new ProjectInfo( libraryInfo.getSelectedOrganizationUnit(),
+                                                                          libraryInfo.getSelectedRepository(),
+                                                                          libraryInfo.getSelectedBranch(),
+                                                                          project ) ) );
     }
 
     @PostConstruct

@@ -41,4 +41,6 @@ public interface LibraryService {
     Boolean thereIsAProjectInTheWorkbench();
 
     List<FolderItem> getProjectAssets( Project project );
+
+    Boolean hasAssets( Project project );
 }
