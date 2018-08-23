@@ -38,6 +38,7 @@ import org.kie.workbench.common.screens.library.client.screens.ProjectScreenTest
 import org.kie.workbench.common.screens.library.client.screens.assets.AssetsScreen;
 import org.kie.workbench.common.screens.library.client.screens.organizationalunit.contributors.edit.EditContributorsPopUpPresenter;
 import org.kie.workbench.common.screens.library.client.screens.organizationalunit.contributors.tab.ContributorsListPresenter;
+import org.kie.workbench.common.screens.library.client.screens.project.branch.delete.DeleteBranchPopUpScreen;
 import org.kie.workbench.common.screens.library.client.screens.project.delete.DeleteProjectPopUpScreen;
 import org.kie.workbench.common.screens.library.client.screens.project.rename.RenameProjectPopUpScreen;
 import org.kie.workbench.common.screens.library.client.settings.SettingsPresenter;
@@ -121,6 +122,12 @@ public class ProjectScreenTest extends ProjectScreenTestBase {
     private DeleteProjectPopUpScreen deleteProjectPopUpScreen;
 
     @Mock
+    private ManagedInstance<DeleteBranchPopUpScreen> deleteBranchPopUpScreenInstance;
+
+    @Mock
+    private DeleteBranchPopUpScreen deleteBranchPopUpScreen;
+
+    @Mock
     private ManagedInstance<RenameProjectPopUpScreen> renameProjectPopUpScreenInstance;
 
     @Mock
@@ -166,6 +173,7 @@ public class ProjectScreenTest extends ProjectScreenTestBase {
 
         when(editContributorsPopUpPresenterInstance.get()).thenReturn(editContributorsPopUpPresenter);
         when(deleteProjectPopUpScreenInstance.get()).thenReturn(deleteProjectPopUpScreen);
+        when(deleteBranchPopUpScreenInstance.get()).thenReturn(deleteBranchPopUpScreen);
         when(renameProjectPopUpScreenInstance.get()).thenReturn(renameProjectPopUpScreen);
 
         final Module module = mock(Module.class);
@@ -189,6 +197,7 @@ public class ProjectScreenTest extends ProjectScreenTestBase {
                                                               this.buildExecutor,
                                                               this.editContributorsPopUpPresenterInstance,
                                                               this.deleteProjectPopUpScreenInstance,
+                                                              this.deleteBranchPopUpScreenInstance,
                                                               this.renameProjectPopUpScreenInstance,
                                                               new CallerMock<>(this.libraryService),
                                                               projectScreenServiceCaller,

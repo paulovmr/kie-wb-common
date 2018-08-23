@@ -40,6 +40,7 @@ import org.guvnor.common.services.project.model.WorkspaceProject;
 import org.guvnor.common.services.project.service.DeploymentMode;
 import org.guvnor.common.services.project.service.WorkspaceProjectService;
 import org.guvnor.structure.backend.repositories.ConfiguredRepositories;
+import org.guvnor.structure.config.SystemRepositoryChangedEvent;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
 import org.guvnor.structure.organizationalunit.OrganizationalUnitService;
 import org.guvnor.structure.organizationalunit.impl.OrganizationalUnitImpl;
@@ -165,6 +166,9 @@ public class LibraryServiceImplTest {
     private ConfiguredRepositories configuredRepositories;
 
     @Mock
+    private Event<SystemRepositoryChangedEvent> systemRepositoryChangedEvent;
+
+    @Mock
     private Event<NewBranchEvent> newBranchEvent;
 
     @Mock
@@ -239,7 +243,8 @@ public class LibraryServiceImplTest {
                                                     newProjectEvent,
                                                     pathUtil,
                                                     newBranchEvent,
-                                                    configuredRepositories
+                                                    configuredRepositories,
+                                                    systemRepositoryChangedEvent
         ));
     }
 
