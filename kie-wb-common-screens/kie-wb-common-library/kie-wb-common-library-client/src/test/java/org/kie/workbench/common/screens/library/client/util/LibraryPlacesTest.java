@@ -22,9 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import javax.enterprise.event.Event;
-import javax.inject.Inject;
 
 import org.ext.uberfire.social.activities.model.ExtendedTypes;
 import org.ext.uberfire.social.activities.model.SocialFileSelectedEvent;
@@ -43,6 +41,7 @@ import org.guvnor.structure.repositories.Branch;
 import org.guvnor.structure.repositories.Repository;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
+import org.jboss.errai.security.shared.api.identity.User;
 import org.jboss.errai.security.shared.exception.UnauthorizedException;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.junit.Before;
@@ -64,9 +63,7 @@ import org.kie.workbench.common.services.shared.project.KieModuleService;
 import org.kie.workbench.common.workbench.client.docks.AuthoringWorkbenchDocks;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.uberfire.backend.vfs.ObservablePath;
 import org.uberfire.backend.vfs.Path;
@@ -87,14 +84,15 @@ import org.uberfire.mvp.Command;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.mvp.impl.PathPlaceRequest;
+import org.uberfire.rpc.SessionInfo;
+import org.uberfire.spaces.Space;
 import org.uberfire.workbench.events.NotificationEvent;
 import org.uberfire.workbench.model.PanelDefinition;
 import org.uberfire.workbench.model.impl.PartDefinitionImpl;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -180,6 +178,12 @@ public class LibraryPlacesTest {
     @Mock
     private ProjectBranchBreadcrumb projectBranchBreadcrumb;
 
+    @Mock
+    private SessionInfo sessionInfo;
+
+    @Mock
+    private User user;
+
     private LibraryBreadcrumbs libraryBreadcrumbs;
 
     @Captor
@@ -188,6 +192,7 @@ public class LibraryPlacesTest {
     private LibraryPlaces libraryPlaces;
 
     private OrganizationalUnit activeOrganizationalUnit;
+    private Space activeSpace;
     private Repository activeRepository;
     private Branch activeBranch;
     private Module activeModule;
@@ -196,6 +201,9 @@ public class LibraryPlacesTest {
 
     @Before
     public void setup() {
+        when(user.getIdentifier()).thenReturn("user");
+        when(sessionInfo.getIdentity()).thenReturn(user);
+
         windowParameters = new HashMap<>();
         libraryServiceCaller = new CallerMock<>(libraryService);
         vfsServiceCaller = new CallerMock<>(vfsService);
@@ -227,7 +235,8 @@ public class LibraryPlacesTest {
                                               assetListUpdateEvent,
                                               closeUnsavedProjectAssetsPopUpPresenter,
                                               projectsSetupEvent,
-                                              libraryBreadcrumbs) {
+                                              libraryBreadcrumbs,
+                                              sessionInfo) {
 
             @Override
             protected Map<String, List<String>> getParameterMap() {
@@ -239,6 +248,7 @@ public class LibraryPlacesTest {
         libraryPlaces.init(mock(LibraryPerspective.class));
 
         activeOrganizationalUnit = mock(OrganizationalUnit.class);
+        activeSpace = mock(Space.class);
         activeRepository = mock(Repository.class);
         activeBranch = new Branch("master",
                                   mock(Path.class));
@@ -257,6 +267,10 @@ public class LibraryPlacesTest {
         when(current.getOrganizationalUnit()).thenReturn(activeOrganizationalUnit);
         when(current.getWorkspaceProject()).thenReturn(activeProject);
         when(current.getModule()).thenReturn(activeModule);
+
+        when(activeOrganizationalUnit.getSpace()).thenReturn(activeSpace);
+        when(activeRepository.getAlias()).thenReturn("repository");
+        when(activeRepository.getSpace()).thenReturn(activeSpace);
 
         final URIStructureExplorerModel model = mock(URIStructureExplorerModel.class);
         doReturn(mock(Repository.class)).when(model).getRepository();
@@ -860,5 +874,35 @@ public class LibraryPlacesTest {
                              any(),
                              any(),
                              any());
+    }
+
+    @Test
+    public void loggedUserAccessingRepositoryTest() {
+        assertTrue(libraryPlaces.isThisUserAccessingThisRepository(user, activeRepository));
+    }
+
+    @Test
+    public void loggedUserAccessingAnotherRepositoryTest() {
+        final Repository repository = mock(Repository.class);
+        when(repository.getAlias()).thenReturn("another-repository");
+        when(repository.getSpace()).thenReturn(activeSpace);
+
+        assertFalse(libraryPlaces.isThisUserAccessingThisRepository(user,
+                                                                    repository));
+    }
+
+    @Test
+    public void anotherUserAccessingRepositoryTest() {
+        assertFalse(libraryPlaces.isThisUserAccessingThisRepository(mock(User.class), activeRepository));
+    }
+
+    @Test
+    public void anotherUserAccessingAnotherRepositoryTest() {
+        final Repository repository = mock(Repository.class);
+        when(repository.getAlias()).thenReturn("another-repository");
+        when(repository.getSpace()).thenReturn(activeSpace);
+
+        assertFalse(libraryPlaces.isThisUserAccessingThisRepository(mock(User.class),
+                                                                    repository));
     }
 }

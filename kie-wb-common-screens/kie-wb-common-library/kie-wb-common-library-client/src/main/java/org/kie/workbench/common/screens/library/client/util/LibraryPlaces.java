@@ -49,6 +49,7 @@ import org.guvnor.structure.repositories.RepositoryRemovedEvent;
 import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
+import org.jboss.errai.security.shared.api.identity.User;
 import org.jboss.errai.security.shared.exception.UnauthorizedException;
 import org.jboss.errai.ui.client.local.spi.TranslationService;
 import org.kie.soup.commons.validation.PortablePreconditions;
@@ -58,6 +59,7 @@ import org.kie.workbench.common.screens.library.api.LibraryService;
 import org.kie.workbench.common.screens.library.api.ProjectAssetListUpdated;
 import org.kie.workbench.common.screens.library.api.Remote;
 import org.kie.workbench.common.screens.library.api.Routed;
+import org.kie.workbench.common.screens.library.api.preferences.LibraryInternalPreferences;
 import org.kie.workbench.common.screens.library.client.events.AssetDetailEvent;
 import org.kie.workbench.common.screens.library.client.events.WorkbenchProjectMetricsEvent;
 import org.kie.workbench.common.screens.library.client.perspective.LibraryPerspective;
@@ -91,6 +93,8 @@ import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.mvp.impl.PathPlaceRequest;
 import org.uberfire.preferences.shared.impl.PreferenceScopeResolutionStrategyInfo;
+import org.uberfire.rpc.SessionInfo;
+import org.uberfire.spaces.Space;
 import org.uberfire.workbench.events.NotificationEvent;
 import org.uberfire.workbench.events.ResourceDeletedEvent;
 import org.uberfire.workbench.model.impl.PartDefinitionImpl;
@@ -175,6 +179,10 @@ public class LibraryPlaces implements WorkspaceProjectContextChangeHandler {
 
     private LibraryBreadcrumbs libraryBreadcrumbs;
 
+    private SessionInfo sessionInfo;
+
+    private LibraryInternalPreferences libraryInternalPreferences;
+
     private boolean docksReady = false;
 
     private boolean docksHidden = true;
@@ -208,7 +216,9 @@ public class LibraryPlaces implements WorkspaceProjectContextChangeHandler {
                          final @Routed Event<ProjectAssetListUpdated> assetListUpdatedEvent,
                          final CloseUnsavedProjectAssetsPopUpPresenter closeUnsavedProjectAssetsPopUpPresenter,
                          final @Source(EXTERNAL) Event<ImportProjectsSetupEvent> importProjectsSetupEvent,
-                         final LibraryBreadcrumbs libraryBreadcrumbs) {
+                         final LibraryBreadcrumbs libraryBreadcrumbs,
+                         final SessionInfo sessionInfo,
+                         final LibraryInternalPreferences libraryInternalPreferences) {
         this.breadcrumbs = breadcrumbs;
         this.ts = ts;
         this.projectMetricsEvent = projectMetricsEvent;
@@ -231,6 +241,8 @@ public class LibraryPlaces implements WorkspaceProjectContextChangeHandler {
         this.closeUnsavedProjectAssetsPopUpPresenter = closeUnsavedProjectAssetsPopUpPresenter;
         this.importProjectsSetupEvent = importProjectsSetupEvent;
         this.libraryBreadcrumbs = libraryBreadcrumbs;
+        this.sessionInfo = sessionInfo;
+        this.libraryInternalPreferences = libraryInternalPreferences;
     }
 
     @PostConstruct
@@ -534,6 +546,32 @@ public class LibraryPlaces implements WorkspaceProjectContextChangeHandler {
 
     public void goToProject(final WorkspaceProject project,
                             final Branch branch) {
+        libraryInternalPreferences.load(loadedLibraryInternalPreferences -> {
+                                            final Space space = getActiveSpace().getSpace();
+                                            final Repository repository = getActiveWorkspace().getRepository();
+                                            final String branchName = branch.getName();
+
+                                            final Optional<String> lastBranchOpened = loadedLibraryInternalPreferences.getLastBranchOpened(space, repository);
+
+                                            lastBranchOpened.map(b -> {
+                                                if (!b.equals(branch.getName())) {
+                                                    loadedLibraryInternalPreferences.setLastBranchOpened(space,
+                                                                                                         repository,
+                                                                                                         branchName);
+                                                    loadedLibraryInternalPreferences.save();
+                                                }
+
+                                                return branchName;
+                                            });
+                                        },
+                                        error -> {
+                                        });
+        goToProjectWithoutUpdateLastOpenedBranch(project,
+                                                 branch);
+    }
+
+    private void goToProjectWithoutUpdateLastOpenedBranch(WorkspaceProject project,
+                                                          Branch branch) {
         projectService.call((RemoteCallback<WorkspaceProject>) this::goToProject).resolveProject(project.getSpace(), branch);
     }
 
@@ -716,6 +754,18 @@ public class LibraryPlaces implements WorkspaceProjectContextChangeHandler {
 
     public OrganizationalUnit getActiveSpace() {
         return this.projectContext.getActiveOrganizationalUnit().orElseThrow(() -> new IllegalStateException("No active space found"));
+    }
+
+    public boolean isThisUserAccessingThisRepository(final User user,
+                                                     final Repository repository) {
+        final Space space = repository.getSpace();
+        final String repositoryAlias = repository.getAlias();
+
+        final Space activeSpace = getActiveSpace().getSpace();
+        final Repository activeRepository = getActiveWorkspace().getRepository();
+        final String activeRepositoryAlias = activeRepository.getAlias();
+
+        return space.equals(activeSpace) && repositoryAlias.equals(activeRepositoryAlias) && sessionInfo.getIdentity().equals(user);
     }
 
     public void init(final LibraryPerspective libraryPerspective) {
