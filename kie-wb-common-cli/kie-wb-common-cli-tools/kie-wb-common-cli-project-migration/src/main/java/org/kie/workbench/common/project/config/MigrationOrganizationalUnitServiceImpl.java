@@ -30,6 +30,7 @@ import org.guvnor.structure.organizationalunit.RemoveOrganizationalUnitEvent;
 import org.guvnor.structure.organizationalunit.RepoAddedToOrganizationalUnitEvent;
 import org.guvnor.structure.organizationalunit.RepoRemovedFromOrganizationalUnitEvent;
 import org.guvnor.structure.organizationalunit.UpdatedOrganizationalUnitEvent;
+import org.guvnor.structure.organizationalunit.config.SpaceConfigStorage;
 import org.jboss.errai.bus.server.annotations.Service;
 import org.uberfire.io.IOService;
 import org.uberfire.rpc.SessionInfo;
@@ -60,7 +61,8 @@ public class MigrationOrganizationalUnitServiceImpl extends OrganizationalUnitSe
                                                   final SpacesAPI spaces,
                                                   final SessionInfo sessionInfo,
                                                   @Named("ioStrategy") final IOService ioService,
-                                                  final ConfiguredRepositories configuredRepositories) {
+                                                  final ConfiguredRepositories configuredRepositories,
+                                                  final SpaceConfigStorage spaceConfigStorage) {
         super(configurationService,
               configurationFactory,
               organizationalUnitFactory,
@@ -75,6 +77,7 @@ public class MigrationOrganizationalUnitServiceImpl extends OrganizationalUnitSe
               spaces,
               sessionInfo,
               ioService,
-              configuredRepositories);
+              configuredRepositories,
+              spaceConfigStorage);
     }
 }
