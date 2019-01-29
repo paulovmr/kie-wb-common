@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.kie.workbench.common.system.configuration;
+package org.kie.workbench.common.system.space.configuration;
 
 import java.nio.file.Path;
 
@@ -27,9 +27,9 @@ import org.kie.workbench.common.migration.cli.SystemAccess;
 import org.kie.workbench.common.migration.cli.ToolConfig;
 import org.kie.workbench.common.project.cli.PromptService;
 
-public class SystemConfigurationMigrationTool implements MigrationTool {
+public class SystemToSpaceConfigurationMigrationTool implements MigrationTool {
 
-    public static final String NAME = "System configuration directory structure migration";
+    public static final String NAME = "System to space configuration repository migration";
 
     private SystemAccess system;
     private ToolConfig config;
@@ -41,17 +41,17 @@ public class SystemConfigurationMigrationTool implements MigrationTool {
 
     @Override
     public String getDescription() {
-        return "Moves old system configuration directory structure to the new one";
+        return "Moves spaces and repositories metadata to each space configuration repository";
     }
 
     @Override
     public Integer getPriority() {
-        return 1;
+        return 4;
     }
 
     @Override
     public boolean isSystemMigration() {
-        return true;
+        return false;
     }
 
     @Override
@@ -63,9 +63,9 @@ public class SystemConfigurationMigrationTool implements MigrationTool {
         final PromptService promptService = new PromptService(system,
                                                               config);
 
-        system.out().println("Starting system configuration directory structure migration");
+        system.out().println("Starting system to space configuration repository migration");
 
-        if (validateTarget() && promptService.maybePromptForBackup()) {
+        if (promptService.maybePromptForBackup()) {
             final Path niogitDir = config.getTarget();
             MigrationSetup.configureProperties(system,
                                                niogitDir);
@@ -76,19 +76,10 @@ public class SystemConfigurationMigrationTool implements MigrationTool {
     private void migrate() {
         ContainerHandler container = new ContainerHandler(() -> new Weld().initialize());
         container.run(ConfigGroupsMigrationService.class,
-                      service -> service.groupSystemConfigGroups(),
+                      ConfigGroupsMigrationService::moveDataToSpaceConfigRepo,
                       error -> {
                           system.err().println("Error during migration: ");
                           error.printStackTrace(system.err());
                       });
-    }
-
-    private boolean validateTarget() {
-        if (!config.getTarget().resolve("system").resolve(MigrationConstants.SYSTEM_GIT).toFile().exists()) {
-            system.err().println(String.format("The PROJECT STRUCTURE MIGRATION must be ran before this one."));
-            return false;
-        }
-
-        return true;
     }
 }
