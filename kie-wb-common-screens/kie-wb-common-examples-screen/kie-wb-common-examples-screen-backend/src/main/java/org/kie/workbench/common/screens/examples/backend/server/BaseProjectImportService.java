@@ -32,11 +32,12 @@ import org.guvnor.common.services.project.model.WorkspaceProject;
 import org.guvnor.common.services.project.service.WorkspaceProjectService;
 import org.guvnor.common.services.shared.metadata.MetadataService;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.organizationalunit.config.RepositoryConfiguration;
+import org.guvnor.structure.organizationalunit.config.RepositoryInfo;
 import org.guvnor.structure.repositories.Branch;
 import org.guvnor.structure.repositories.EnvironmentParameters;
 import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.impl.git.GitRepository;
-import org.guvnor.structure.server.config.ConfigGroup;
 import org.guvnor.structure.server.config.ConfigurationFactory;
 import org.kie.workbench.common.screens.examples.model.ExampleProjectError;
 import org.kie.workbench.common.screens.examples.model.ExampleRepository;
@@ -54,7 +55,6 @@ import org.uberfire.io.IOService;
 import static java.util.stream.Collectors.toList;
 import static org.guvnor.structure.repositories.EnvironmentParameters.MIRROR;
 import static org.guvnor.structure.repositories.EnvironmentParameters.SCHEME;
-import static org.guvnor.structure.server.config.ConfigType.REPOSITORY;
 
 public abstract class BaseProjectImportService implements ImportService {
 
@@ -62,7 +62,6 @@ public abstract class BaseProjectImportService implements ImportService {
     protected IOService ioService;
     protected MetadataService metadataService;
     protected ImportProjectValidators validators;
-    protected ConfigurationFactory configurationFactory;
     protected KieModuleService moduleService;
     protected WorkspaceProjectService projectService;
     protected ProjectScreenService projectScreenService;
@@ -78,7 +77,6 @@ public abstract class BaseProjectImportService implements ImportService {
 
         this.metadataService = metadataService;
         this.validators = validators;
-        this.configurationFactory = configurationFactory;
         this.moduleService = moduleService;
         this.projectService = projectService;
         this.projectScreenService = projectScreenService;
@@ -166,23 +164,20 @@ public abstract class BaseProjectImportService implements ImportService {
                 .collect(Collectors.toSet());
     }
 
-    protected ConfigGroup createConfigGroup(String alias,
-                                            Map<String, Object> env) {
-        ConfigGroup repositoryConfig = configurationFactory.newConfigGroup(REPOSITORY,
-                                                                           "system",
-                                                                           alias,
-                                                                           "");
+    protected RepositoryInfo createConfigGroup(String alias,
+                                               Map<String, Object> env) {
 
-        for (final Map.Entry<String, Object> entry : env.entrySet()) {
-            repositoryConfig.addConfigItem(configurationFactory.newConfigItem(entry.getKey(),
-                                                                              entry.getValue()));
-        }
+        RepositoryConfiguration configuration = new RepositoryConfiguration(env);
 
-        repositoryConfig.addConfigItem(configurationFactory.newConfigItem(EnvironmentParameters.AVOID_INDEX,
-                                                                          "true"));
+        configuration.add(EnvironmentParameters.AVOID_INDEX,
+                          "true");
 
-        repositoryConfig.addConfigItem(configurationFactory.newConfigItem(EnvironmentParameters.SPACE,
-                                                                          "system"));
+        configuration.add(EnvironmentParameters.SPACE,
+                          "system");
+
+        RepositoryInfo repositoryConfig = new RepositoryInfo(alias,
+                                                             false,
+                                                             configuration);
 
         return repositoryConfig;
     }

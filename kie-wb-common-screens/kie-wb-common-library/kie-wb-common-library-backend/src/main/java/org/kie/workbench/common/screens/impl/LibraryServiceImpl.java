@@ -452,7 +452,7 @@ public class LibraryServiceImpl implements LibraryService {
         deleteBranchPermissions(project.getSpace().getName(),
                                 project.getRepository().getIdentifier(),
                                 branch.getName());
-        configuredRepositories.refreshRepository(project.getRepository());
+//        configuredRepositories.refreshRepository(project.getRepository());
     }
 
     @Override

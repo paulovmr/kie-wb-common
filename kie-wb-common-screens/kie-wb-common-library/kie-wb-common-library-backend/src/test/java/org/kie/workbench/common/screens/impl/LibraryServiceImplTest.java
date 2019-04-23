@@ -788,7 +788,7 @@ public class LibraryServiceImplTest {
         libraryService.removeBranch(project, masterBranch);
 
         verify(ioService).delete(baseBranchPath);
-        verify(configuredRepositories).refreshRepository(repo1);
+//        verify(configuredRepositories).refreshRepository(repo1);
     }
 
     private Branch makeBranch(final String branchName,

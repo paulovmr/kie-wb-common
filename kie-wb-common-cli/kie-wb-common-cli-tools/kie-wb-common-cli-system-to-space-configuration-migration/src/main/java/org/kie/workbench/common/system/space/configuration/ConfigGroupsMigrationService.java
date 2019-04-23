@@ -19,12 +19,15 @@ package org.kie.workbench.common.system.space.configuration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 
 import org.guvnor.structure.backend.backcompat.BackwardCompatibleUtil;
 import org.guvnor.structure.contributors.Contributor;
 import org.guvnor.structure.contributors.ContributorType;
+import org.guvnor.structure.organizationalunit.config.RepositoryConfiguration;
+import org.guvnor.structure.organizationalunit.config.RepositoryInfo;
 import org.guvnor.structure.organizationalunit.config.SpaceConfigStorageRegistry;
 import org.guvnor.structure.organizationalunit.config.SpaceInfo;
 import org.guvnor.structure.server.config.ConfigGroup;
@@ -60,7 +63,7 @@ public class ConfigGroupsMigrationService {
                 final String name = extractName(groupConfig);
                 final String defaultGroupId = extractDefaultGroupId(groupConfig);
                 final Collection<Contributor> contributors = extractContributors(groupConfig);
-                final List<String> repositories = extractRepositories(groupConfig);
+                final List<RepositoryInfo> repositories = extractRepositories(groupConfig);
                 final List<String> securityGroups = extractSecurityGroups(groupConfig);
 
                 spaceConfigStorageRegistry.get(name).saveSpaceInfo(new SpaceInfo(name,
@@ -101,7 +104,8 @@ public class ConfigGroupsMigrationService {
         final String oldOwner = configGroup.getConfigItemValue("owner");
         if (oldOwner != null) {
             oldConfigGroup = true;
-            contributors.add(new Contributor(oldOwner, ContributorType.OWNER));
+            contributors.add(new Contributor(oldOwner,
+                                             ContributorType.OWNER));
         }
 
         ConfigItem<List<String>> oldContributors = configGroup.getConfigItem("contributors");
@@ -110,7 +114,8 @@ public class ConfigGroupsMigrationService {
 
             for (String userName : oldContributors.getValue()) {
                 if (!userName.equals(oldOwner)) {
-                    contributors.add(new Contributor(userName, ContributorType.CONTRIBUTOR));
+                    contributors.add(new Contributor(userName,
+                                                     ContributorType.CONTRIBUTOR));
                 }
             }
         }
@@ -123,8 +128,11 @@ public class ConfigGroupsMigrationService {
         return contributors;
     }
 
-    private List<String> extractRepositories(final ConfigGroup groupConfig) {
-        return (List<String>) groupConfig.getConfigItem("repositories").getValue();
+    private List<RepositoryInfo> extractRepositories(final ConfigGroup groupConfig) {
+        List<String> repos = (List<String>) groupConfig.getConfigItem("repositories").getValue();
+        return repos.stream().map(r -> new RepositoryInfo(r,
+                                                          false,
+                                                          new RepositoryConfiguration())).collect(Collectors.toList());
     }
 
     private List<String> extractSecurityGroups(final ConfigGroup groupConfig) {

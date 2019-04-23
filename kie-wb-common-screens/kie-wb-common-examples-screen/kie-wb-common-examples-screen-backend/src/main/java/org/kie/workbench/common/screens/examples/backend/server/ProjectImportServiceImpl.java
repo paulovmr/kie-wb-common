@@ -37,6 +37,7 @@ import org.guvnor.common.services.project.model.WorkspaceProject;
 import org.guvnor.common.services.project.service.WorkspaceProjectService;
 import org.guvnor.common.services.shared.metadata.MetadataService;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.organizationalunit.config.RepositoryInfo;
 import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.RepositoryEnvironmentConfigurations;
 import org.guvnor.structure.repositories.RepositoryService;
@@ -123,8 +124,8 @@ public class ProjectImportServiceImpl extends BaseProjectImportService implement
                                                              password,
                                                              true);
 
-            final ConfigGroup repositoryConfig = createConfigGroup(alias,
-                                                                   env);
+            final RepositoryInfo repositoryConfig = createConfigGroup(alias,
+                                                                      env);
 
             Repository repo = repositoryFactory.newRepository(repositoryConfig);
             clonedRepositories.add(repo);

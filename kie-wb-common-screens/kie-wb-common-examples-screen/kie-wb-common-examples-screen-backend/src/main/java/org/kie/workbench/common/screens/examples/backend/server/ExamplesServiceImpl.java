@@ -42,6 +42,7 @@ import org.guvnor.common.services.project.service.WorkspaceProjectService;
 import org.guvnor.common.services.shared.metadata.MetadataService;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
 import org.guvnor.structure.organizationalunit.OrganizationalUnitService;
+import org.guvnor.structure.organizationalunit.config.RepositoryInfo;
 import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.RepositoryCopier;
 import org.guvnor.structure.server.config.ConfigGroup;
@@ -242,8 +243,8 @@ public class ExamplesServiceImpl extends BaseProjectImportService implements Exa
                                                              password,
                                                              false);
 
-            final ConfigGroup repositoryConfig = this.createConfigGroup(alias,
-                                                                        env);
+            final RepositoryInfo repositoryConfig = this.createConfigGroup(alias,
+                                                                           env);
 
             Repository repository = repositoryFactory.newRepository(repositoryConfig);
             clonedRepositories.add(repository);

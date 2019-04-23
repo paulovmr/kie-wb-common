@@ -238,7 +238,7 @@ public class ExamplesServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
@@ -271,7 +271,7 @@ public class ExamplesServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
@@ -303,7 +303,7 @@ public class ExamplesServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
@@ -495,7 +495,7 @@ public class ExamplesServiceImplTest {
                                                                     any(Object.class));
 
         Repository repository = mock(Repository.class);
-        when(repositoryFactory.newRepository(configGroup)).thenReturn(repository);
+//        when(repositoryFactory.newRepository(configGroup)).thenReturn(repository);
 
         Repository result = service.resolveGitRepository(playgroundRepository);
 
@@ -504,8 +504,8 @@ public class ExamplesServiceImplTest {
         assertEquals(false,
                      configGroup.getConfigItem(EnvironmentParameters.MIRROR).getValue());
 
-        verify(repositoryFactory,
-               times(1)).newRepository(configGroup);
+//        verify(repositoryFactory,
+//               times(1)).newRepository(configGroup);
     }
 
     @Test
@@ -526,7 +526,7 @@ public class ExamplesServiceImplTest {
         assertEquals(repository,
                      result);
 
-        verify(repositoryFactory,
-               never()).newRepository(any(ConfigGroup.class));
+//        verify(repositoryFactory,
+//               never()).newRepository(any(ConfigGroup.class));
     }
 }

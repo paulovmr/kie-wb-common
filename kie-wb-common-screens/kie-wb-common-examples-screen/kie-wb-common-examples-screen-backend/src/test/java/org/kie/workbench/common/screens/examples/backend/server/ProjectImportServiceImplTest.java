@@ -179,7 +179,7 @@ public class ProjectImportServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
@@ -210,7 +210,7 @@ public class ProjectImportServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
@@ -242,7 +242,7 @@ public class ProjectImportServiceImplTest {
                                                                                 "tag2"));
 
         final GitRepository repository = makeGitRepository();
-        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
+//        when(repositoryFactory.newRepository(any(ConfigGroup.class))).thenReturn(repository);
         when(moduleService.getAllModules(any(Branch.class))).thenReturn(new HashSet<Module>() {{
             add(module);
         }});
