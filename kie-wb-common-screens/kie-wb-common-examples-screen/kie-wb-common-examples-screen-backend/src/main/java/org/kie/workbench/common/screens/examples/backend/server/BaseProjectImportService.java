@@ -69,7 +69,6 @@ public abstract class BaseProjectImportService implements ImportService {
     public BaseProjectImportService(final IOService ioService,
                                     final MetadataService metadataService,
                                     final ImportProjectValidators validators,
-                                    final ConfigurationFactory configurationFactory,
                                     final KieModuleService moduleService,
                                     final WorkspaceProjectService projectService,
                                     final ProjectScreenService projectScreenService) {
@@ -170,7 +169,7 @@ public abstract class BaseProjectImportService implements ImportService {
         RepositoryConfiguration configuration = new RepositoryConfiguration(env);
 
         configuration.add(EnvironmentParameters.AVOID_INDEX,
-                          "true");
+                          true);
 
         configuration.add(EnvironmentParameters.SPACE,
                           "system");

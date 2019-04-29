@@ -42,8 +42,6 @@ import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.RepositoryEnvironmentConfigurations;
 import org.guvnor.structure.repositories.RepositoryService;
 import org.guvnor.structure.repositories.impl.git.GitRepository;
-import org.guvnor.structure.server.config.ConfigGroup;
-import org.guvnor.structure.server.config.ConfigurationFactory;
 import org.guvnor.structure.server.repositories.RepositoryFactory;
 import org.jboss.errai.bus.server.annotations.Service;
 import org.kie.soup.commons.validation.PortablePreconditions;
@@ -83,7 +81,6 @@ public class ProjectImportServiceImpl extends BaseProjectImportService implement
     @Inject
     public ProjectImportServiceImpl(final @Named("ioStrategy") IOService ioService,
                                     final MetadataService metadataService,
-                                    final ConfigurationFactory configurationFactory,
                                     final RepositoryFactory repositoryFactory,
                                     final KieModuleService moduleService,
                                     final ImportProjectValidators validators,
@@ -96,7 +93,6 @@ public class ProjectImportServiceImpl extends BaseProjectImportService implement
         super(ioService,
               metadataService,
               validators,
-              configurationFactory,
               moduleService,
               projectService,
               projectScreenService);

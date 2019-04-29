@@ -43,9 +43,6 @@ import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.RepositoryEnvironmentConfigurations;
 import org.guvnor.structure.repositories.RepositoryService;
 import org.guvnor.structure.repositories.impl.git.GitRepository;
-import org.guvnor.structure.server.config.ConfigGroup;
-import org.guvnor.structure.server.config.ConfigType;
-import org.guvnor.structure.server.config.ConfigurationFactory;
 import org.guvnor.structure.server.repositories.RepositoryFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,9 +75,6 @@ public class ProjectImportServiceImplTest {
 
     @Mock
     private IOService ioService;
-
-    @Mock
-    private ConfigurationFactory configurationFactory;
 
     @Mock
     private RepositoryFactory repositoryFactory;
@@ -120,7 +114,6 @@ public class ProjectImportServiceImplTest {
     public void setup() {
         service = spy(new ProjectImportServiceImpl(ioService,
                                                    metadataService,
-                                                   configurationFactory,
                                                    repositoryFactory,
                                                    moduleService,
                                                    validators,
@@ -129,11 +122,6 @@ public class ProjectImportServiceImplTest {
                                                    projectScreenService,
                                                    newProjectEvent,
                                                    repoService));
-
-        when(configurationFactory.newConfigGroup(any(ConfigType.class),
-                                                 anyString(),
-                                                 anyString(),
-                                                 anyString())).thenReturn(mock(ConfigGroup.class));
     }
 
     @Test
@@ -437,7 +425,10 @@ public class ProjectImportServiceImplTest {
                                       origin,
                                       username,
                                       password);
-        verify(repoService).createRepository(any(),any(),any(),captor.capture());
+        verify(repoService).createRepository(any(),
+                                             any(),
+                                             any(),
+                                             captor.capture());
 
         assertFalse(captor.getValue().containsConfiguration(EnvironmentParameters.USER_NAME));
         assertFalse(captor.getValue().containsConfiguration(EnvironmentParameters.PASSWORD));
@@ -465,8 +456,6 @@ public class ProjectImportServiceImplTest {
                                                                        repositoryURL,
                                                                        username,
                                                                        password);
-
-
 
         verify(repoService).createRepository(same(organizationalUnit),
                                              eq(GitRepository.SCHEME.toString()),

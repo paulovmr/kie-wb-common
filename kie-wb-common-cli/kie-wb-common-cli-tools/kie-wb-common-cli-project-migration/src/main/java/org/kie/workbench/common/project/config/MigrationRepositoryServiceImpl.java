@@ -24,6 +24,7 @@ import javax.inject.Named;
 
 import org.guvnor.structure.backend.backcompat.BackwardCompatibleUtil;
 import org.guvnor.structure.backend.repositories.RepositoryServiceImpl;
+import org.guvnor.structure.organizationalunit.config.SpaceConfigStorageRegistry;
 import org.guvnor.structure.repositories.GitMetadataStore;
 import org.guvnor.structure.repositories.NewRepositoryEvent;
 import org.guvnor.structure.repositories.RepositoryRemovedEvent;
@@ -56,7 +57,8 @@ public class MigrationRepositoryServiceImpl extends RepositoryServiceImpl {
                                           final MigrationConfiguredRepositories configuredRepositories,
                                           final AuthorizationManager authorizationManager,
                                           final User user,
-                                          final SpacesAPI spacesAPI) {
+                                          final SpacesAPI spacesAPI,
+                                          final SpaceConfigStorageRegistry spaceConfigStorage) {
         super(ioService,
               metadataStore,
               configurationService,
@@ -69,6 +71,7 @@ public class MigrationRepositoryServiceImpl extends RepositoryServiceImpl {
               configuredRepositories,
               authorizationManager,
               user,
-              spacesAPI);
+              spacesAPI,
+              spaceConfigStorage);
     }
 }

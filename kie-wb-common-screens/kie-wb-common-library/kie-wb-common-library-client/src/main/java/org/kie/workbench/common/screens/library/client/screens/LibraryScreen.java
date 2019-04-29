@@ -33,6 +33,7 @@ import org.jboss.errai.common.client.dom.HTMLElement;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
 import org.kie.workbench.common.screens.library.api.LibraryService;
 import org.kie.workbench.common.screens.library.client.perspective.LibraryPerspective;
+import org.kie.workbench.common.screens.library.client.screens.events.ProjectCountUpdate;
 import org.kie.workbench.common.screens.library.client.screens.organizationalunit.contributors.tab.ContributorsListPresenter;
 import org.kie.workbench.common.screens.library.client.screens.organizationalunit.contributors.tab.SpaceContributorsListServiceImpl;
 import org.kie.workbench.common.screens.library.client.screens.organizationalunit.delete.DeleteOrganizationalUnitPopUpPresenter;
@@ -129,6 +130,7 @@ public class LibraryScreen {
 
     public void showProjects() {
 
+        view.setProjectsCount(0);
         final OrganizationalUnit activeOU = projectContext.getActiveOrganizationalUnit()
                 .orElseThrow(() -> new IllegalStateException("Cannot try to query library projects without an active organizational unit."));
         final boolean cachedHasProjects = !activeOU.getRepositories().isEmpty();
@@ -149,12 +151,10 @@ public class LibraryScreen {
 
     private void showEmptyLibraryScreen() {
         view.updateContent(emptyLibraryScreen.getView().getElement());
-        view.setProjectsCount(0);
     }
 
     private void showPopulatedLibraryScreen() {
         view.updateContent(populatedLibraryScreen.getView().getElement());
-        view.setProjectsCount(populatedLibraryScreen.getProjectsCount());
     }
 
     public void showContributors() {
@@ -180,7 +180,8 @@ public class LibraryScreen {
 
     public void onNewProject(@Observes NewProjectEvent e) {
         projectContext.getActiveOrganizationalUnit().ifPresent(p -> {
-            if (eventOnCurrentSpace(p, e.getWorkspaceProject().getSpace())) {
+            if (eventOnCurrentSpace(p,
+                                    e.getWorkspaceProject().getSpace())) {
                 showProjects();
             }
         });
@@ -188,7 +189,8 @@ public class LibraryScreen {
 
     public void onRepositoryRemovedEvent(@Observes RepositoryRemovedEvent e) {
         projectContext.getActiveOrganizationalUnit().ifPresent(p -> {
-            if (eventOnCurrentSpace(p, e.getRepository().getSpace())) {
+            if (eventOnCurrentSpace(p,
+                                    e.getRepository().getSpace())) {
                 showProjects();
             }
         });
@@ -197,6 +199,10 @@ public class LibraryScreen {
     boolean eventOnCurrentSpace(OrganizationalUnit p,
                                 Space space) {
         return p.getSpace().getName().equalsIgnoreCase(space.getName());
+    }
+
+    public void observeProjectCountUpdate(@Observes final ProjectCountUpdate projectCountUpdate) {
+        view.setProjectsCount(projectCountUpdate.getCount());
     }
 
     @OnClose
