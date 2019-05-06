@@ -67,6 +67,7 @@ public class ConfigGroupsMigrationService {
                 final List<String> securityGroups = extractSecurityGroups(groupConfig);
 
                 spaceConfigStorageRegistry.get(name).saveSpaceInfo(new SpaceInfo(name,
+                                                                                 false,
                                                                                  defaultGroupId,
                                                                                  contributors,
                                                                                  repositories,
