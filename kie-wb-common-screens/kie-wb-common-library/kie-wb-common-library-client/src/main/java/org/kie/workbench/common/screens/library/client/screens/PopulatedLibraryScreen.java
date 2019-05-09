@@ -152,6 +152,7 @@ public class PopulatedLibraryScreen {
             final TileWidget tileWidget = createProjectWidget(project);
             view.addProject(tileWidget.getView().getElement());
         });
+
     }
 
     private TileWidget createProjectWidget(final WorkspaceProject project) {

@@ -130,7 +130,6 @@ public class LibraryScreen {
 
     public void showProjects() {
 
-        view.setProjectsCount(0);
         final OrganizationalUnit activeOU = projectContext.getActiveOrganizationalUnit()
                 .orElseThrow(() -> new IllegalStateException("Cannot try to query library projects without an active organizational unit."));
         final boolean cachedHasProjects = !activeOU.getRepositories().isEmpty();
@@ -150,10 +149,12 @@ public class LibraryScreen {
     }
 
     private void showEmptyLibraryScreen() {
+        view.setProjectsCount(0);
         view.updateContent(emptyLibraryScreen.getView().getElement());
     }
 
     private void showPopulatedLibraryScreen() {
+        view.setProjectsCount(populatedLibraryScreen.getProjectsCount());
         view.updateContent(populatedLibraryScreen.getView().getElement());
     }
 
@@ -201,7 +202,7 @@ public class LibraryScreen {
         return p.getSpace().getName().equalsIgnoreCase(space.getName());
     }
 
-    public void observeProjectCountUpdate(@Observes final ProjectCountUpdate projectCountUpdate) {
+    public void onProjectCountUpdate(@Observes final ProjectCountUpdate projectCountUpdate) {
         view.setProjectsCount(projectCountUpdate.getCount());
     }
 

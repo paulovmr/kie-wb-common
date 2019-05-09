@@ -57,6 +57,8 @@ import org.kie.workbench.common.screens.examples.validation.ImportProjectValidat
 import org.kie.workbench.common.screens.projecteditor.service.ProjectScreenService;
 import org.kie.workbench.common.services.shared.project.KieModule;
 import org.kie.workbench.common.services.shared.project.KieModuleService;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
@@ -121,6 +123,9 @@ public class ExamplesServiceImplTest {
 
     private ExamplesServiceImpl service;
 
+    @Captor
+    private ArgumentCaptor<RepositoryInfo> captor;
+
     @Before
     public void setup() {
 
@@ -160,10 +165,6 @@ public class ExamplesServiceImplTest {
         when(sessionInfo.getId()).thenReturn("sessionId");
         when(sessionInfo.getIdentity()).thenReturn(user);
         when(user.getIdentifier()).thenReturn("user");
-//        when(configurationFactory.newConfigGroup(any(ConfigType.class),
-//                                                 anyString(),
-//                                                 anyString(),
-//                                                 anyString())).thenReturn(mock(ConfigGroup.class));
     }
 
     @Test
@@ -476,23 +477,23 @@ public class ExamplesServiceImplTest {
         ExampleRepository playgroundRepository = new ExampleRepository("file:///home/user/folder/.kie-wb-playground");
         service.setPlaygroundRepository(playgroundRepository);
 
-        RepositoryInfo configGroup = new RepositoryInfo("",
+        RepositoryInfo configGroup = new RepositoryInfo("examples-.kie-wb-playground",
                                                         false,
                                                         new RepositoryConfiguration());
 
         Repository repository = mock(Repository.class);
-        when(repositoryFactory.newRepository(configGroup)).thenReturn(repository);
+        when(repositoryFactory.newRepository(captor.capture())).thenReturn(repository);
 
         Repository result = service.resolveGitRepository(playgroundRepository);
 
-//        assertEquals(repository,
-//                     result);
+        assertEquals(repository,
+                     result);
         assertEquals(false,
-                     configGroup.getConfiguration().get(Boolean.class,
-                                                        EnvironmentParameters.MIRROR));
+                     captor.getValue().getConfiguration().get(Boolean.class,
+                                                              EnvironmentParameters.MIRROR));
 
         verify(repositoryFactory,
-               times(1)).newRepository(configGroup);
+               times(1)).newRepository(any());
     }
 
     @Test
@@ -513,7 +514,7 @@ public class ExamplesServiceImplTest {
         assertEquals(repository,
                      result);
 
-//        verify(repositoryFactory,
-//               never()).newRepository(any(ConfigGroup.class));
+        verify(repositoryFactory,
+               never()).newRepository(any(RepositoryInfo.class));
     }
 }
