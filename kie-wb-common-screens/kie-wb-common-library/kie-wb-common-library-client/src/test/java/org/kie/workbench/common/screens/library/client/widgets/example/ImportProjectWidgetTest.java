@@ -24,16 +24,15 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kie.workbench.common.screens.examples.model.ImportProject;
 import org.kie.workbench.common.screens.examples.model.ExampleProjectError;
+import org.kie.workbench.common.screens.examples.model.ImportProject;
 import org.kie.workbench.common.screens.library.client.widgets.example.errors.ExampleProjectErrorPresenter;
 import org.kie.workbench.common.screens.library.client.widgets.example.errors.ExampleProjectOkPresenter;
 import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,7 +71,8 @@ public class ImportProjectWidgetTest {
     @Test
     public void testProjectContainErrors() {
         when(this.importProject.getErrors()).thenReturn(this.errors);
-        this.widget.init(this.importProject);
+        this.widget.init(this.importProject,
+                         mock(ExampleProjectWidgetContainer.class));
 
         verify(this.exampleProjectOkPresenter,
                never()).getView();
@@ -92,7 +92,8 @@ public class ImportProjectWidgetTest {
     @Test
     public void testProjectNotContainsErrors() {
         when(this.importProject.getErrors()).thenReturn(Collections.emptyList());
-        this.widget.init(this.importProject);
+        this.widget.init(this.importProject,
+                         mock(ExampleProjectWidgetContainer.class));
 
         verify(this.exampleProjectErrorPresenter,
                never())
@@ -108,9 +109,10 @@ public class ImportProjectWidgetTest {
     }
 
     @Test
-    public void testSelectOkProject() {
+    public void testClickOkProject() {
         when(this.importProject.getErrors()).thenReturn(Collections.emptyList());
-        this.widget.init(this.importProject);
+        this.widget.init(this.importProject,
+                         mock(ExampleProjectWidgetContainer.class));
 
         this.widget.select();
 
@@ -119,7 +121,7 @@ public class ImportProjectWidgetTest {
 
         assertTrue(this.widget.isSelected());
 
-        this.widget.select();
+        this.widget.click();
 
         verify(this.view)
                 .unsetActive();
@@ -130,7 +132,8 @@ public class ImportProjectWidgetTest {
     @Test
     public void testSelectErrorProject() {
         when(this.importProject.getErrors()).thenReturn(errors);
-        this.widget.init(this.importProject);
+        this.widget.init(this.importProject,
+                         mock(ExampleProjectWidgetContainer.class));
 
         this.widget.select();
 

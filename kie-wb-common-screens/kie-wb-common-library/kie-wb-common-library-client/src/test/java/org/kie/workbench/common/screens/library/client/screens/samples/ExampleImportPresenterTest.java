@@ -16,6 +16,7 @@
 
 package org.kie.workbench.common.screens.library.client.screens.samples;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.kie.workbench.common.screens.examples.model.ImportProject;
 import org.kie.workbench.common.screens.examples.service.ExamplesService;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.preferences.ImportProjectsPreferences;
 import org.kie.workbench.common.screens.library.client.screens.importrepository.ExamplesImportPresenter;
 import org.kie.workbench.common.screens.library.client.screens.importrepository.ImportPresenter;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
@@ -42,10 +44,13 @@ import org.kie.workbench.common.screens.library.client.widgets.example.errors.Ex
 import org.kie.workbench.common.screens.library.client.widgets.example.errors.ExampleProjectOkPresenter;
 import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.uberfire.backend.vfs.Path;
 import org.uberfire.mocks.CallerMock;
 import org.uberfire.mocks.EventSourceMock;
+import org.uberfire.mvp.ParameterizedCommand;
 import org.uberfire.mvp.impl.DefaultPlaceRequest;
 import org.uberfire.workbench.events.NotificationEvent;
 
@@ -85,7 +90,8 @@ public class ExampleImportPresenterTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private ExampleProjectErrorPresenter exampleProjectErrorPresenter;
 
-    private ExampleProjectWidget tileWidget;
+    @Mock
+    private ImportProjectsPreferences importProjectsPreferences;
 
     private ImportPresenter importPresenter;
 
@@ -93,11 +99,10 @@ public class ExampleImportPresenterTest {
     public void setup() {
         libraryServiceCaller = new CallerMock<>(libraryService);
         examplesServiceCaller = new CallerMock<>(examplesService);
-        tileWidget = spy(new ExampleProjectWidget(mock(ExampleProjectWidget.View.class),
-                                                  exampleProjectOkPresenter,
-                                                  exampleProjectErrorPresenter));
 
-        doReturn(tileWidget).when(tileWidgets).get();
+        doAnswer(invocationOnMock -> spy(new ExampleProjectWidget(mock(ExampleProjectWidget.View.class),
+                                                          exampleProjectOkPresenter,
+                                                          exampleProjectErrorPresenter))).when(tileWidgets).get();
 
         importPresenter = new ExamplesImportPresenter(view,
                                                       libraryPlaces,
@@ -107,11 +112,19 @@ public class ExampleImportPresenterTest {
                                                       notificationEvent,
                                                       projectContextChangeEvent,
                                                       new Elemental2DomUtil(),
-                                                      mock(TranslationService.class));
+                                                      mock(TranslationService.class),
+                                                      importProjectsPreferences,
+                                                      libraryServiceCaller);
     }
 
     @Test
     public void onStartupWithoutProjectsTest() {
+        doReturn(false).when(libraryService).isClustered();
+        doAnswer(invocationOnMock -> {
+            invocationOnMock.getArgumentAt(0, ParameterizedCommand.class).execute(importProjectsPreferences);
+            return null;
+        }).when(importProjectsPreferences).load(any(ParameterizedCommand.class), any(ParameterizedCommand.class));
+
         Map<String, String> params = new HashMap<>();
         params.put("repositoryUrl",
                    "repoUrl");
@@ -125,22 +138,13 @@ public class ExampleImportPresenterTest {
 
     @Test
     public void filterProjectsTest() {
-        Set<ImportProject> projects = new HashSet<>();
-        projects.add(new ImportProject(mock(Path.class),
-                                       "p1a",
-                                       "p1a description",
-                                       "git@git.com",
-                                       null));
-        projects.add(new ImportProject(mock(Path.class),
-                                       "p3b",
-                                       "p3b description",
-                                       "git@git.com",
-                                       null));
-        projects.add(new ImportProject(mock(Path.class),
-                                       "p2a",
-                                       "p2a description",
-                                       "git@git.com",
-                                       null));
+        doReturn(false).when(libraryService).isClustered();
+        doAnswer(invocationOnMock -> {
+            invocationOnMock.getArgumentAt(0, ParameterizedCommand.class).execute(importProjectsPreferences);
+            return null;
+        }).when(importProjectsPreferences).load(any(ParameterizedCommand.class), any(ParameterizedCommand.class));
+
+        Set<ImportProject> projects = getImportProjects();
         doReturn(projects).when(examplesService).getExampleProjects();
 
         Map<String, String> params = new HashMap<>();
@@ -160,5 +164,73 @@ public class ExampleImportPresenterTest {
         importPresenter.cancel();
 
         verify(libraryPlaces).goToLibrary();
+    }
+
+    @Test
+    public void selectProjectWithMultipleProjectSelectionEnabledTest() {
+        final Set<ImportProject> importProjects = getImportProjects();
+        importPresenter.setupProjects(importProjects);
+        importPresenter.setMultipleProjectSelectionEnabled(true);
+
+        final List<ImportProject> importProjectsList = new ArrayList<>(importProjects);
+        final ImportProject project1 = importProjectsList.get(0);
+        final ExampleProjectWidget project1Widget = importPresenter.getProjectWidgetsByProject().get(project1);
+        final ImportProject project2 = importProjectsList.get(1);
+        final ExampleProjectWidget project2Widget = importPresenter.getProjectWidgetsByProject().get(project2);
+        final ImportProject project3 = importProjectsList.get(2);
+        final ExampleProjectWidget project3Widget = importPresenter.getProjectWidgetsByProject().get(project3);
+
+        importPresenter.selectProject(project1Widget);
+
+        verify(project1Widget).select();
+        verify(project1Widget, never()).unselect();
+        verify(project2Widget, never()).select();
+        verify(project2Widget, never()).unselect();
+        verify(project3Widget, never()).select();
+        verify(project3Widget, never()).unselect();
+    }
+
+    @Test
+    public void selectProjectWithMultipleProjectSelectionDisabledTest() {
+        final Set<ImportProject> importProjects = getImportProjects();
+        importPresenter.setupProjects(importProjects);
+        importPresenter.setMultipleProjectSelectionEnabled(false);
+
+        final List<ImportProject> importProjectsList = new ArrayList<>(importProjects);
+        final ImportProject project1 = importProjectsList.get(0);
+        final ExampleProjectWidget project1Widget = importPresenter.getProjectWidgetsByProject().get(project1);
+        final ImportProject project2 = importProjectsList.get(1);
+        final ExampleProjectWidget project2Widget = importPresenter.getProjectWidgetsByProject().get(project2);
+        final ImportProject project3 = importProjectsList.get(2);
+        final ExampleProjectWidget project3Widget = importPresenter.getProjectWidgetsByProject().get(project3);
+
+        importPresenter.selectProject(project1Widget);
+
+        verify(project1Widget).select();
+        verify(project1Widget, never()).unselect();
+        verify(project2Widget, never()).select();
+        verify(project2Widget).unselect();
+        verify(project3Widget, never()).select();
+        verify(project3Widget).unselect();
+    }
+
+    private Set<ImportProject> getImportProjects() {
+        Set<ImportProject> projects = new HashSet<>();
+        projects.add(new ImportProject(mock(Path.class),
+                                       "p1a",
+                                       "p1a description",
+                                       "git@git.com",
+                                       null));
+        projects.add(new ImportProject(mock(Path.class),
+                                       "p3b",
+                                       "p3b description",
+                                       "git@git.com",
+                                       null));
+        projects.add(new ImportProject(mock(Path.class),
+                                       "p2a",
+                                       "p2a description",
+                                       "git@git.com",
+                                       null));
+        return projects;
     }
 }
