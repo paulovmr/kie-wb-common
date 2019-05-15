@@ -112,7 +112,7 @@ public class ExampleProjectView implements ExampleProjectWidget.View {
 
     @EventHandler("card")
     public void onCardClick(ClickEvent event) {
-        this.presenter.select();
+        this.presenter.click();
     }
 
     @EventHandler("branch-selector")

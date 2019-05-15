@@ -34,6 +34,7 @@ import org.junit.runner.RunWith;
 import org.kie.workbench.common.screens.examples.model.ImportProject;
 import org.kie.workbench.common.screens.examples.service.ExamplesService;
 import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.preferences.ImportProjectsPreferences;
 import org.kie.workbench.common.screens.library.client.screens.importrepository.ExamplesImportPresenter;
 import org.kie.workbench.common.screens.library.client.screens.importrepository.ImportPresenter;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
@@ -89,6 +90,9 @@ public class ExampleImportPresenterTest {
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private BranchSelectorPopUpPresenter branchSelectorPopUpPresenter;
 
+    @Mock
+    private ImportProjectsPreferences importProjectsPreferences;
+
     private ExampleProjectWidget tileWidget;
 
     private ImportPresenter importPresenter;
@@ -112,7 +116,9 @@ public class ExampleImportPresenterTest {
                                                       notificationEvent,
                                                       projectContextChangeEvent,
                                                       new Elemental2DomUtil(),
-                                                      mock(TranslationService.class));
+                                                      mock(TranslationService.class),
+                                                      importProjectsPreferences,
+                                                      libraryServiceCaller);
     }
 
     @Test

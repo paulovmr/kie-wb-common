@@ -70,12 +70,12 @@ import org.kie.workbench.common.screens.library.api.LibraryInfo;
 import org.kie.workbench.common.screens.library.api.LibraryService;
 import org.kie.workbench.common.screens.library.api.OrganizationalUnitRepositoryInfo;
 import org.kie.workbench.common.screens.library.api.ProjectAssetsQuery;
-import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueFileExtensionIndexTerm;
-import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueFileNameIndexTerm;
-import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueRepositoryRootIndexTerm;
 import org.kie.workbench.common.screens.library.api.preferences.LibraryInternalPreferences;
 import org.kie.workbench.common.screens.library.api.preferences.LibraryPreferences;
 import org.kie.workbench.common.services.refactoring.backend.server.query.standard.FindAllLibraryAssetsQuery;
+import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueFileExtensionIndexTerm;
+import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueFileNameIndexTerm;
+import org.kie.workbench.common.services.refactoring.backend.server.query.standard.LibraryValueRepositoryRootIndexTerm;
 import org.kie.workbench.common.services.refactoring.model.index.terms.valueterms.ValueIndexTerm;
 import org.kie.workbench.common.services.refactoring.model.query.RefactoringPageRequest;
 import org.kie.workbench.common.services.refactoring.model.query.RefactoringPageRow;
@@ -85,6 +85,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.uberfire.backend.server.util.Paths;
 import org.uberfire.backend.vfs.Path;
+import org.uberfire.commons.cluster.ClusterService;
 import org.uberfire.ext.security.management.api.exception.NoImplementationAvailableException;
 import org.uberfire.ext.security.management.api.service.UserManagerService;
 import org.uberfire.ext.security.management.impl.SearchRequestImpl;
@@ -124,6 +125,7 @@ public class LibraryServiceImpl implements LibraryService {
     private ConfiguredRepositories configuredRepositories;
     private Event<RepositoryExternalUpdateEvent> repositoryExternalUpdate;
     private SpaceConfigStorageRegistry spaceConfigStorageRegistry;
+    private ClusterService clusterService;
 
     public LibraryServiceImpl() {
     }
@@ -147,7 +149,8 @@ public class LibraryServiceImpl implements LibraryService {
                               final Event<NewBranchEvent> newBranchEvent,
                               final ConfiguredRepositories configuredRepositories,
                               final Event<RepositoryExternalUpdateEvent> repositoryExternalUpdate,
-                              final SpaceConfigStorageRegistry spaceConfigStorageRegistry) {
+                              final SpaceConfigStorageRegistry spaceConfigStorageRegistry,
+                              final ClusterService clusterService) {
         this.ouService = ouService;
         this.refactoringQueryService = refactoringQueryService;
         this.preferences = preferences;
@@ -167,6 +170,7 @@ public class LibraryServiceImpl implements LibraryService {
         this.configuredRepositories = configuredRepositories;
         this.repositoryExternalUpdate = repositoryExternalUpdate;
         this.spaceConfigStorageRegistry = spaceConfigStorageRegistry;
+        this.clusterService = clusterService;
     }
 
     @Override
@@ -468,6 +472,11 @@ public class LibraryServiceImpl implements LibraryService {
                                       final String branchName,
                                       final BranchPermissions branchPermissions) {
         spaceConfigStorageRegistry.get(spaceName).saveBranchPermissions(branchName, projectIdentifier, branchPermissions);
+    }
+
+    @Override
+    public Boolean isClustered() {
+        return clusterService.isAppFormerClustered();
     }
 
     private void deleteBranchPermissions(final String spaceName,

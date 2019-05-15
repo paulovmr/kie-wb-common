@@ -30,14 +30,18 @@ import org.guvnor.common.services.project.client.context.WorkspaceProjectContext
 import org.guvnor.common.services.project.context.WorkspaceProjectContextChangeEvent;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
 import org.jboss.errai.bus.client.api.messaging.Message;
+import org.jboss.errai.common.client.api.Caller;
 import org.jboss.errai.common.client.api.ErrorCallback;
 import org.jboss.errai.common.client.api.RemoteCallback;
 import org.jboss.errai.common.client.dom.HTMLElement;
 import org.jboss.errai.common.client.dom.elemental2.Elemental2DomUtil;
 import org.jboss.errai.ioc.client.api.ManagedInstance;
 import org.kie.workbench.common.screens.examples.model.ImportProject;
+import org.kie.workbench.common.screens.library.api.LibraryService;
+import org.kie.workbench.common.screens.library.api.preferences.ImportProjectsPreferences;
 import org.kie.workbench.common.screens.library.client.util.LibraryPlaces;
 import org.kie.workbench.common.screens.library.client.widgets.example.ExampleProjectWidget;
+import org.kie.workbench.common.screens.library.client.widgets.example.ExampleProjectWidgetContainer;
 import org.uberfire.client.mvp.UberElement;
 import org.uberfire.ext.widgets.common.client.callbacks.DefaultErrorCallback;
 import org.uberfire.ext.widgets.common.client.callbacks.HasBusyIndicatorDefaultErrorCallback;
@@ -46,7 +50,7 @@ import org.uberfire.mvp.Command;
 import org.uberfire.mvp.PlaceRequest;
 import org.uberfire.workbench.events.NotificationEvent;
 
-public abstract class ImportPresenter {
+public abstract class ImportPresenter implements ExampleProjectWidgetContainer {
 
     public interface View extends UberElement<ImportPresenter>,
                                   HasBusyIndicator {
@@ -83,7 +87,10 @@ public abstract class ImportPresenter {
 
     protected final Event<WorkspaceProjectContextChangeEvent> projectContextChangeEvent;
     protected final Elemental2DomUtil elemental2DomUtil;
+    protected final ImportProjectsPreferences importProjectsPreferences;
+    protected final Caller<LibraryService> libraryService;
     private String title;
+    private boolean multipleProjectSelectionEnabled = false;
 
     protected Map<ImportProject, ExampleProjectWidget> projectWidgetsByName;
 
@@ -94,6 +101,8 @@ public abstract class ImportPresenter {
                            final Event<NotificationEvent> notificationEvent,
                            final Event<WorkspaceProjectContextChangeEvent> projectContextChangeEvent,
                            final Elemental2DomUtil elemental2DomUtil,
+                           final ImportProjectsPreferences importProjectsPreferences,
+                           final Caller<LibraryService> libraryService,
                            final String title) {
         this.view = view;
         this.libraryPlaces = libraryPlaces;
@@ -102,21 +111,29 @@ public abstract class ImportPresenter {
         this.notificationEvent = notificationEvent;
         this.projectContextChangeEvent = projectContextChangeEvent;
         this.elemental2DomUtil = elemental2DomUtil;
+        this.importProjectsPreferences = importProjectsPreferences;
+        this.libraryService = libraryService;
         this.title = title;
     }
 
     public void onStartup(final PlaceRequest placeRequest) {
-        view.init(this);
+        libraryService.call((Boolean isClustered) -> importProjectsPreferences.load(loadedImportProjectsPreferences -> {
+            this.multipleProjectSelectionEnabled = isClustered || loadedImportProjectsPreferences.isMultipleProjectsImportOnClusterEnabled();
 
-        final String title = placeRequest.getParameter("title",
-                                                       this.title);
-        view.setTitle(title);
+            view.init(this);
 
-        loadProjects(placeRequest,
-                     projects -> {
-                         view.hideBusyIndicator();
-                         setupProjects(projects);
-                     });
+            final String title = placeRequest.getParameter("title",
+                                                           this.title);
+            view.setTitle(title);
+
+            loadProjects(placeRequest,
+                         projects -> {
+                             view.hideBusyIndicator();
+                             setupProjects(projects);
+                         });
+        }, error -> {
+            throw new RuntimeException(error);
+        })).isClustered();
     }
 
     protected abstract void loadProjects(final PlaceRequest placeRequest,
@@ -161,7 +178,7 @@ public abstract class ImportPresenter {
 
     private ExampleProjectWidget createProjectWidget(final ImportProject project) {
         ExampleProjectWidget tileWidget = tileWidgets.get();
-        tileWidget.init(project);
+        tileWidget.init(project, this);
         return tileWidget;
     }
 
@@ -239,5 +256,16 @@ public abstract class ImportPresenter {
     protected OrganizationalUnit activeOrganizationalUnit() {
         return projectContext.getActiveOrganizationalUnit()
                 .orElseThrow(() -> new IllegalStateException("Cannot setup examples without an active organizational unit."));
+    }
+
+    @Override
+    public void selectProject(final ExampleProjectWidget selectedWidget) {
+        projectWidgetsByName.values().forEach(widget -> {
+            if (widget.equals(selectedWidget)) {
+                widget.select();
+            } else if (!multipleProjectSelectionEnabled) {
+                widget.unselect();
+            }
+        });
     }
 }
