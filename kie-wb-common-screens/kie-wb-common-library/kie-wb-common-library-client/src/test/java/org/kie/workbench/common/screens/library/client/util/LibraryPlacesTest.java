@@ -35,6 +35,7 @@ import org.guvnor.common.services.project.model.WorkspaceProject;
 import org.guvnor.common.services.project.service.WorkspaceProjectService;
 import org.guvnor.structure.client.security.OrganizationalUnitController;
 import org.guvnor.structure.organizationalunit.OrganizationalUnit;
+import org.guvnor.structure.organizationalunit.RemoveOrganizationalUnitEvent;
 import org.guvnor.structure.repositories.Branch;
 import org.guvnor.structure.repositories.Repository;
 import org.guvnor.structure.repositories.RepositoryRemovedEvent;
@@ -912,5 +913,32 @@ public class LibraryPlacesTest {
 
         verify(repositoryService).removeRepository(activeSpace, activeRepository.getAlias());
         verify(view).hideBusyIndicator();
+    }
+
+    @Test
+    public void onOrganizationalUnitRemovedByLoggedUserTest() {
+        doReturn(PlaceStatus.OPEN).when(placeManager).getStatus(LibraryPlaces.LIBRARY_PERSPECTIVE);
+
+        libraryPlaces.onOrganizationalUnitRemoved(new RemoveOrganizationalUnitEvent(activeOrganizationalUnit, user.getIdentifier()));
+
+        verify(libraryPlaces, never()).goToOrganizationalUnits();
+    }
+
+    @Test
+    public void onOrganizationalUnitRemovedByOtherUserTest() {
+        doReturn(PlaceStatus.OPEN).when(placeManager).getStatus(LibraryPlaces.LIBRARY_PERSPECTIVE);
+
+        libraryPlaces.onOrganizationalUnitRemoved(new RemoveOrganizationalUnitEvent(activeOrganizationalUnit, "another-user"));
+
+        verify(libraryPlaces).goToOrganizationalUnits();
+    }
+
+    @Test
+    public void onOrganizationalUnitRemovedWithLibraryClosedTest() {
+        doReturn(PlaceStatus.CLOSE).when(placeManager).getStatus(LibraryPlaces.LIBRARY_PERSPECTIVE);
+
+        libraryPlaces.onOrganizationalUnitRemoved(new RemoveOrganizationalUnitEvent(activeOrganizationalUnit, "another-user"));
+
+        verify(libraryPlaces, never()).goToOrganizationalUnits();
     }
 }
